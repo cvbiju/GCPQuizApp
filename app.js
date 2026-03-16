@@ -26,6 +26,8 @@ const DOMElements = {
     triggerUploadBtn: document.getElementById('triggerUploadBtn'),
     uploadFileName: document.getElementById('uploadFileName'),
     createKeyContainer: document.getElementById('createKeyContainer'),
+    editCreateKeyBtn: document.getElementById('editCreateKeyBtn'),
+    createKeyInputArea: document.getElementById('createKeyInputArea'),
     createApiKeyInput: document.getElementById('createApiKeyInput'),
     saveCreateKeyBtn: document.getElementById('saveCreateKeyBtn'),
     createKeySuccess: document.getElementById('createKeySuccess'),
@@ -691,13 +693,24 @@ DOMElements.navCreateBtn.addEventListener('click', () => {
     DOMElements.createView.classList.remove('hidden');
     
     // Manage inline API Key Setup
+    DOMElements.createKeyContainer.classList.remove('hidden');
     if (chatApiKey) {
-        DOMElements.createKeyContainer.classList.add('hidden');
+        DOMElements.createKeyInputArea.classList.add('hidden');
+        DOMElements.createKeySuccess.classList.remove('hidden');
+        DOMElements.editCreateKeyBtn.classList.remove('hidden');
     } else {
-        DOMElements.createKeyContainer.classList.remove('hidden');
+        DOMElements.createKeyInputArea.classList.remove('hidden');
         DOMElements.createKeySuccess.classList.add('hidden');
+        DOMElements.editCreateKeyBtn.classList.add('hidden');
         DOMElements.createApiKeyInput.value = '';
     }
+});
+
+DOMElements.editCreateKeyBtn.addEventListener('click', () => {
+    DOMElements.createKeyInputArea.classList.remove('hidden');
+    DOMElements.createKeySuccess.classList.add('hidden');
+    DOMElements.editCreateKeyBtn.classList.add('hidden');
+    DOMElements.createApiKeyInput.value = chatApiKey || '';
 });
 
 DOMElements.saveCreateKeyBtn.addEventListener('click', () => {
@@ -706,10 +719,9 @@ DOMElements.saveCreateKeyBtn.addEventListener('click', () => {
     
     chatApiKey = key;
     localStorage.setItem('gcp_quiz_gemini_key', key);
+    DOMElements.createKeyInputArea.classList.add('hidden');
     DOMElements.createKeySuccess.classList.remove('hidden');
-    setTimeout(() => {
-        DOMElements.createKeyContainer.classList.add('hidden');
-    }, 1500);
+    DOMElements.editCreateKeyBtn.classList.remove('hidden');
 });
 
 DOMElements.cancelCreateBtn.addEventListener('click', () => {

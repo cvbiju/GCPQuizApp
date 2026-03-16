@@ -119,10 +119,16 @@
                         </div>
 
                         <div id="createKeyContainer" style="margin-bottom: 1.5rem; padding: 1rem; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.9rem;">Gemini AI Connection <span style="color:var(--accent-red)">*</span></label>
-                            <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1rem;">Requires a free API key to power the AI extraction engine.</p>
-                            <input type="password" id="createApiKeyInput" class="text-input" placeholder="Paste your Google Gemini API Key..." style="width: 100%; margin-bottom: 0.5rem;" autocomplete="off">
-                            <button id="saveCreateKeyBtn" class="secondary-btn" style="width: 100%; font-size: 0.85rem; padding: 0.4rem;">Save & Connect API</button>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                <label style="font-weight: bold; font-size: 0.9rem;">Gemini AI Connection <span style="color:var(--accent-red)">*</span></label>
+                                <button id="editCreateKeyBtn" class="hidden" style="background: none; border: none; color: var(--accent-blue); cursor: pointer; font-size: 0.85rem; padding: 0;">Edit Key</button>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1rem;">Requires a <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">free API Key</a> to power the AI extraction engine. Your key does not expire.</p>
+                            
+                            <div id="createKeyInputArea">
+                                <input type="password" id="createApiKeyInput" class="text-input" placeholder="Paste your Google Gemini API Key..." style="width: 100%; margin-bottom: 0.5rem;" autocomplete="off">
+                                <button id="saveCreateKeyBtn" class="secondary-btn" style="width: 100%; font-size: 0.85rem; padding: 0.4rem;">Save & Connect API</button>
+                            </div>
                             <p id="createKeySuccess" class="hidden" style="color: var(--accent-green); font-size: 0.85rem; margin-top: 0.5rem;">✅ API Key Linked Successfully</p>
                         </div>
 
