@@ -1,0 +1,17 @@
+# Ignore virtual environments
+venv/
+env/
+.env
+
+# Ignore python artifacts
+__pycache__/
+*.pyc
+
+# Ignore raw data files and scripts
+*.pdf
+*.txt
+questions_raw.json
+*.py
+
+# Operating system files
+.DS_Store

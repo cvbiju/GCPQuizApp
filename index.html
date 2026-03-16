@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCP Security Engineer Exam Prep</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="overlay-grad"></div>
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="brand">
+                <svg viewBox="0 0 24 24" fill="none" class="brand-logo" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.99 21.05V18C7.54 18 3.93 14.39 3.93 9.94H6.88L3.43 5.48L0 9.94H2.94C2.94 14.93 7.02 18.99 12.01 18.99C16.99 18.99 21.07 14.93 21.07 9.94H18.13L21.57 5.48L25.01 9.94H22.06C22.06 14.39 18.45 18 14 18V21.05C14 21.6 13.55 22.05 13 22.05H12.99C12.44 22.05 11.99 21.6 11.99 21.05Z" fill="url(#paint0_linear)"/>
+                    <defs>
+                        <linearGradient id="paint0_linear" x1="12.505" y1="5.48" x2="12.505" y2="22.05" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#4F86F7"/>
+                            <stop offset="1" stop-color="#B23DEB"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="title-wrap">
+                    <h1>GCP Security Engineer</h1>
+                    <span class="subtitle">Exam Prep Topics</span>
+                </div>
+            </div>
+            <div id="progressCont">
+                <span id="progressText">Question 1 / 25</span>
+                <div class="progress-bar-bg">
+                    <div id="progressBar" class="progress-fill"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Layout -->
+        <div class="content-wrapper">
+            <!-- Subtle Left Sidebar Scoreboard -->
+            <aside id="scoreboard" class="subtle-sidebar hidden">
+                <div class="score-card subtle-card">
+                    <div class="score-item subtle-item">
+                        <div class="score-stats">
+                            <span class="score-label">Correct</span>
+                            <span id="liveCorrectScore" class="score-val correct-color">0</span>
+                        </div>
+                    </div>
+                    <div class="score-item subtle-item">
+                        <div class="score-stats">
+                            <span class="score-label">Incorrect</span>
+                            <span id="liveIncorrectScore" class="score-val incorrect-color">0</span>
+                        </div>
+                    </div>
+                    <div class="score-item subtle-item">
+                        <div class="score-stats">
+                            <span class="score-label">Accuracy</span>
+                            <span id="liveAccuracyText" class="score-val accent-color">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Workspace -->
+            <main>
+                <div id="loading" class="state-view">
+                    <div class="spinner"></div>
+                    <p>Loading questions...</p>
+                </div>
+                
+                <div id="quiz" class="state-view hidden">
+                    <div class="question-blob"></div>
+                    <div class="question-blob blob2"></div>
+
+                <div class="question-card glass-panel">
+                    <h2 id="questionText">Question Text Here...</h2>
+                    <div class="hint-container">
+                        <button id="hintToggleBtn" class="hint-btn hidden">
+                            <span class="hint-icon">💡</span> Need a hint?
+                        </button>
+                        <div id="hintTextCont" class="hint-box hidden">
+                            <p id="hintText"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="optionsCont" class="options-grid">
+                    <!-- Options populated by JS -->
+                </div>
+
+                <div class="actions">
+                    <button id="submitBtn" class="primary-btn" disabled>Submit Answer</button>
+                    <button id="nextBtn" class="secondary-btn hidden">Next Question <span class="arrow">→</span></button>
+                </div>
+
+                <!-- Explanation Section -->
+                <div id="explanationCont" class="glass-panel explanation hidden">
+                    <h3>Review Answers</h3>
+                    <div id="explanationBody"></div>
+                </div>
+            </div>
+
+            <div id="summary" class="state-view hidden glass-panel">
+                <div class="summary-content">
+                    <h2>Quiz Completed!</h2>
+                    <div class="score-display">
+                        <span id="finalScoreText">0/25</span>
+                        <span>Correct</span>
+                    </div>
+                    <button id="restartBtn" class="primary-btn">Retake Quiz</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

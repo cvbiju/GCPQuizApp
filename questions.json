@@ -1,0 +1,592 @@
+[
+  {
+    "question": "Your team needs to make sure that a Compute Engine instance does not have access to the internet or to any Google APIs or services.\nWhich two settings must remain disabled to meet these requirements? (Choose two.)",
+    "options": {
+      "A": "Public IP",
+      "B": "IP Forwarding",
+      "C": "Private Google Access",
+      "D": "Static routes",
+      "E": "IAM Network User Role"
+    },
+    "answer": "AC",
+    "explanations": {
+      "A": "Correct: To prevent internet access, the instance must not have an External/Public IP address.",
+      "B": "Incorrect: IP Forwarding is used when an instance acts as a router/NAT gateway, it doesn't directly prevent the instance itself from reaching the internet.",
+      "C": "Correct: Private Google Access allows instances with only internal IP addresses to reach the external IP addresses of Google APIs and services. Disabling it blocks this access.",
+      "D": "Incorrect: Static routes define paths to networks, disabling them could disrupt internal routing but isn't the primary way to block internet/Google API access.",
+      "E": "Incorrect: IAM Network User role is for sharing networks across projects, it doesn't control internet access of a specific VM instance."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/compute/docs/ip-addresses",
+      "B": "https://cloud.google.com/vpc/docs/using-routes#ip-forwarding",
+      "C": "https://cloud.google.com/vpc/docs/configure-private-google-access",
+      "D": "https://cloud.google.com/vpc/docs/routes",
+      "E": "https://cloud.google.com/iam/docs/understanding-roles#compute.networkUser"
+    },
+    "hint": "Think about how instances receive routing and address assignments. What specific component allows an instance to communicate directly with the internet?"
+  },
+  {
+    "question": "Which two implied firewall rules are defined on a VPC network? (Choose two.)",
+    "options": {
+      "A": "A rule that allows all outbound connections",
+      "B": "A rule that denies all inbound connections",
+      "C": "A rule that blocks all inbound port 25 connections",
+      "D": "A rule that blocks all outbound connections",
+      "E": "A rule that allows all inbound port 80 connections"
+    },
+    "answer": "AB",
+    "explanations": {
+      "A": "Correct: A rule that allows all outbound (egress) connections with the lowest priority (65535) is implied in every VPC.",
+      "B": "Correct: A rule that denies all inbound (ingress) connections with the lowest priority (65535) is implied in every VPC.",
+      "C": "Incorrect: While GCP blocks port 25 out of the network broadly, it is not an implied VPC firewall rule.",
+      "D": "Incorrect: The default implied rule allows all outbound connections, it does not block them.",
+      "E": "Incorrect: Inbound connections are denied by default; there is no implied rule to allow port 80."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/vpc/docs/firewalls#default_firewall_rules",
+      "B": "https://cloud.google.com/vpc/docs/firewalls#default_firewall_rules",
+      "C": "https://cloud.google.com/vpc/docs/firewalls",
+      "D": "https://cloud.google.com/vpc/docs/firewalls#default_firewall_rules",
+      "E": "https://cloud.google.com/vpc/docs/firewalls#default_firewall_rules"
+    },
+    "hint": "Consider what kind of traffic a newly created VPC allows or denies by default without any custom rules. How does traffic flow in vs out?"
+  },
+  {
+    "question": "A customer needs an alternative to storing their plain text secrets in their source-code management (SCM) system.\nHow should the customer achieve this using Google Cloud Platform?",
+    "options": {
+      "A": "Use Cloud Source Repositories, and store secrets in Cloud SQL.",
+      "B": "Encrypt the secrets with a Customer-Managed Encryption Key (CMEK), and store them in Cloud Storage.",
+      "C": "Run the Cloud Data Loss Prevention API to scan the secrets, and store them in Cloud SQL.",
+      "D": "Deploy the SCM to a Compute Engine VM with local SSDs, and enable preemptible VMs."
+    },
+    "answer": "B",
+    "explanations": {
+      "A": "Incorrect: Cloud Source Repositories and Cloud SQL are not designed for encrypted secret storage.",
+      "B": "Correct: Encrypting secrets with CMEK via Cloud KMS and storing them in Cloud Storage was historically a recommended alternative (before Secret Manager was widely adopted) to keep them out of plain text in SCM.",
+      "C": "Incorrect: Cloud DLP is used for redaction and inspection, not for managing/storing encrypted secrets.",
+      "D": "Incorrect: Deploying SCM on a preemptible VM doesn't secure the secrets themselves."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/source-repositories/docs",
+      "B": "https://cloud.google.com/kms/docs/envelope-encryption",
+      "C": "https://cloud.google.com/dlp/docs",
+      "D": "https://cloud.google.com/compute/docs/instances/preemptible"
+    },
+    "hint": "You are looking for a solution that encrypts the sensitive material *before* it gets committed to the repository, utilizing a centralized key management service."
+  },
+  {
+    "question": "Your team wants to centrally manage GCP IAM permissions from their on-premises Active Directory Service. Your team wants to manage\npermissions by AD group membership.\nWhat should your team do to meet these requirements?",
+    "options": {
+      "A": "Set up Cloud Directory Sync to sync groups, and set IAM permissions on the groups.",
+      "B": "Set up SAML 2.0 Single Sign-On (SSO), and assign IAM permissions to the groups.",
+      "C": "Use the Cloud Identity and Access Management API to create groups and IAM permissions from Active Directory.",
+      "D": "Use the Admin SDK to create groups and assign IAM permissions from Active Directory."
+    },
+    "answer": "A",
+    "explanations": {
+      "A": "Correct: Cloud Directory Sync (GCDS) synchronizes Microsoft Active Directory users and groups to Google Cloud Identity. Once synchronized, IAM policies can be assigned directly to these groups.",
+      "B": "Incorrect: SAML 2.0 Single Sign-On (SSO) handles authentication but does not synchronize users and groups to Cloud Identity for IAM authorization.",
+      "C": "Incorrect: The IAM API does not automatically pull from Active Directory; Cloud Directory Sync is the automated tool for this.",
+      "D": "Incorrect: While Admin SDK can create groups, this requires custom code. Cloud Directory Sync is the purpose-built, automated solution."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/architecture/identity/federating-gcp-with-active-directory-configuring-single-sign-on",
+      "B": "https://cloud.google.com/architecture/identity/federating-gcp-with-active-directory-configuring-single-sign-on",
+      "C": "https://cloud.google.com/iam/docs",
+      "D": "https://developers.google.com/admin-sdk"
+    },
+    "hint": "Look for the tool designed explicitly to bridge Microsoft's directory service with Google's identity platform."
+  },
+  {
+    "question": "When creating a secure container image, which two items should you incorporate into the build if possible? (Choose two.)",
+    "options": {
+      "A": "Ensure that the app does not run as PID 1.",
+      "B": "Package a single app as a container.",
+      "C": "Remove any unnecessary tools not needed by the app.",
+      "D": "Use public container images as a base image for the app.",
+      "E": "Use many container image layers to hide sensitive information."
+    },
+    "answer": "BC",
+    "explanations": {
+      "A": "Incorrect: A process running as PID 1 handles system signals differently, but preventing it is an operational choice (to respond to SIGTERM gracefully), not specifically a container security requirement.",
+      "B": "Correct: The principle of least privilege in containers means running a single application per container to reduce the attack surface.",
+      "C": "Correct: Removing unnecessary tools (like shell environments, utilities) reduces the risk of an attacker using them to escalate privileges or move laterally if the container is compromised.",
+      "D": "Incorrect: Using public images without verification can introduce vulnerabilities; using a trusted, hardened base image is preferred.",
+      "E": "Incorrect: Using many layers increases the image size and attack surface; it does not hide sensitive information since layers can be inspected."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/architecture/best-practices-for-building-containers",
+      "B": "https://cloud.google.com/architecture/best-practices-for-building-containers",
+      "C": "https://cloud.google.com/architecture/best-practices-for-building-containers",
+      "D": "https://cloud.google.com/architecture/best-practices-for-building-containers",
+      "E": "https://cloud.google.com/architecture/best-practices-for-building-containers"
+    },
+    "hint": "If an attacker compromises one part of the container, you want to limit what else they can do. Reducing the 'attack surface' is key."
+  },
+  {
+    "question": "A customer needs to launch a 3-tier internal web application on Google Cloud Platform (GCP). The customer's internal compliance requirements\ndictate that end- user access may only be allowed if the traffic seems to originate from a specific known good CIDR. The customer accepts the\nrisk that their application will only have SYN flood DDoS protection. They want to use GCP's native SYN flood protection.\nWhich product should be used to meet these requirements?",
+    "options": {
+      "A": "Cloud Armor",
+      "B": "VPC Firewall Rules",
+      "C": "Cloud Identity and Access Management",
+      "D": "Cloud CDN"
+    },
+    "answer": "A",
+    "explanations": {
+      "A": "Correct: Cloud Armor provides Layer 7 protection (including IP allowlisting/denylisting) and relies on the HTTP(S) load balancer which inherently absorbs Layer 4 attacks like SYN floods.",
+      "B": "Incorrect: VPC Firewall Rules can restrict IPs but do not provide explicit Layer 7 DDoS protections like Cloud Armor.",
+      "C": "Incorrect: Cloud IAM controls who can manage resources, not network traffic rules.",
+      "D": "Incorrect: Cloud CDN is for content caching and delivery, not for security rules or WAF capabilities."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/armor/docs/cloud-armor-overview",
+      "B": "https://cloud.google.com/vpc/docs/firewalls",
+      "C": "https://cloud.google.com/iam/docs",
+      "D": "https://cloud.google.com/cdn/docs"
+    },
+    "hint": "Which GCP service acts at the edge as a Web Application Firewall (WAF) to filter incoming HTTP(S) traffic based on IP or geography?"
+  },
+  {
+    "question": "A company is running workloads in a dedicated server room. They must only be accessed from within the private company network. You need to\nconnect to these workloads from Compute Engine instances within a Google Cloud Platform project.\nWhich two approaches can you take to meet the requirements? (Choose two.)",
+    "options": {
+      "A": "Configure the project with Cloud VPN.",
+      "B": "Configure the project with Shared VPC.",
+      "C": "Configure the project with Cloud Interconnect.",
+      "D": "Configure the project with VPC peering.",
+      "E": "Configure all Compute Engine instances with Private Access."
+    },
+    "answer": "AC",
+    "explanations": {
+      "A": "Correct: Cloud VPN securely extends your on-premises network to Google's network through an IPsec VPN tunnel, suitable for accessing the dedicated server room.",
+      "B": "Incorrect: Shared VPC allows multiple GCP projects to share a common VPC, but does not connect GCP to an on-premises facility.",
+      "C": "Correct: Cloud Interconnect provides low-latency, highly available connections that enable you to reliably transfer data between your on-premises and VPC networks.",
+      "D": "Incorrect: VPC Peering connects two VPC networks in GCP, not an on-premises network.",
+      "E": "Incorrect: Private Google Access allows VMs to reach Google APIs, it does not connect to an on-premises server room."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/network-connectivity/docs/vpn/concepts/overview",
+      "B": "https://cloud.google.com/vpc/docs/shared-vpc",
+      "C": "https://cloud.google.com/network-connectivity/docs/interconnect/concepts/overview",
+      "D": "https://cloud.google.com/vpc/docs/vpc-peering",
+      "E": "https://cloud.google.com/vpc/docs/configure-private-google-access"
+    },
+    "hint": "A dedicated server room implies a physical location separate from GCP. Which service physically connects an on-premise network to a VPC with high reliability?"
+  },
+  {
+    "question": "A customer implements Cloud Identity-Aware Proxy for their ERP system hosted on Compute Engine. Their security team wants to add a security\nlayer so that the\nERP systems only accept traffic from Cloud Identity-Aware Proxy.\nWhat should the customer do to meet these requirements?",
+    "options": {
+      "A": "Make sure that the ERP system can validate the JWT assertion in the HTTP requests.",
+      "B": "Make sure that the ERP system can validate the identity headers in the HTTP requests.",
+      "C": "Make sure that the ERP system can validate the x-forwarded-for headers in the HTTP requests.",
+      "D": "Make sure that the ERP system can validate the user's unique identifier headers in the HTTP requests."
+    },
+    "answer": "A",
+    "explanations": {
+      "A": "Correct: To ensure traffic is strictly coming from IAP and not bypassed, your backend application must computationally verify the JWT assertion signed by Google in the HTTP request header (X-Goog-IAP-JWT-Assertion).",
+      "B": "Incorrect: Validating identity headers (like x-goog-authenticated-user-email) can be spoofed; the JWT signature proves it came from Google.",
+      "C": "Incorrect: x-forwarded-for just lists the IP path and can be spoofed.",
+      "D": "Incorrect: Simple unique identifier headers are not cryptographically secure."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/iap/docs/signed-headers-howto",
+      "B": "https://cloud.google.com/iap/docs/signed-headers-howto",
+      "C": "https://cloud.google.com/iap/docs/signed-headers-howto",
+      "D": "https://cloud.google.com/iap/docs/signed-headers-howto"
+    },
+    "hint": "Identity-Aware Proxy passes identity information downstream. How can you cryptographically verify that this information hasn't been spoofed by a client directly hitting the backend?"
+  },
+  {
+    "question": "A company has been running their application on Compute Engine. A bug in the application allowed a malicious user to repeatedly execute a script\nthat results in the Compute Engine instance crashing. Although the bug has been fixed, you want to get notified in case this hack re-occurs.\nWhat should you do?",
+    "options": {
+      "A": "Correct",
+      "B": "Create an Alerting Policy in Stackdriver using the CPU usage metric. Set the threshold to 80% to be notified when the CPU usage goes\nabove this 80%.",
+      "C": "Log every execution of the script to Stackdriver Logging. Create a User-defined metric in Stackdriver Logging on the logs, and create a\nStackdriver Dashboard displaying the metric.",
+      "D": "Log every execution of the script to Stackdriver Logging. Configure BigQuery as a log sink, and create a BigQuery scheduled query to count\nthe number of executions in a specific timeframe."
+    },
+    "answer": "C",
+    "explanations": {
+      "A": "Incorrect: Although mentioned in the raw text, an alerting policy checking process health does not track executions of an arbitrary script or hack. Note: the answer key given earlier said C.",
+      "B": "Incorrect: CPU usage may not necessarily spike significantly due to the script, making it an unreliable metric for specific script execution.",
+      "C": "Correct: By logging the script's execution to Stackdriver Logging, you can create a log-based metric that counts occurrences. You can then alert on this metric or display it on a dashboard.",
+      "D": "Incorrect: BigQuery sinks are great for analytics, but scheduled queries run periodically and aren't directly meant for real-time alerting."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/monitoring/alerts/types-of-conditions#metric-threshold",
+      "B": "https://cloud.google.com/monitoring/alerts/types-of-conditions#metric-threshold",
+      "C": "https://cloud.google.com/logging/docs/logs-based-metrics",
+      "D": "https://cloud.google.com/logging/docs/export/configure_export_v2"
+    },
+    "hint": "You need a mechanism that counts specific text occurrences in logs and translates them into a time-series data point you can alert on."
+  },
+  {
+    "question": "Your team needs to obtain a unified log view of all development cloud projects in your SIEM. The development projects are under the NONPROD\norganization folder with the test and pre-production projects. The development projects share the ABC-BILLING billing account with the rest of the\norganization.\nWhich logging export strategy should you use to meet the requirements?",
+    "options": {
+      "A": "1. Export logs to a Cloud Pub/Sub topic with folders/NONPROD parent and includeChildren property set to True in a dedicated SIEM project.\n2. Subscribe SIEM to the topic.",
+      "B": "1. Create a Cloud Storage sink with billingAccounts/ABC-BILLING parent and includeChildren property set to False in a dedicated SIEM\nproject. 2. Process Cloud Storage objects in SIEM.",
+      "C": "1. Export logs in each dev project to a Cloud Pub/Sub topic in a dedicated SIEM project. 2. Subscribe SIEM to the topic.",
+      "D": "1. Create a Cloud Storage sink with a publicly shared Cloud Storage bucket in each project. 2. Process Cloud Storage objects in SIEM."
+    },
+    "answer": "B",
+    "explanations": {
+      "A": "Incorrect: Exporting from an organization folder with includeChildren=True will capture logs from all projects under it (including test/pre-prod), not just the development projects sharing a specific billing account.",
+      "B": "Correct: An Aggregated Log Sink created at the Organization or Folder level can use a filter (`billingAccount=ABC-BILLING`) to exclusively select logs from development projects tied to that billing account, and export them to Cloud Storage or Pub/Sub.",
+      "C": "Incorrect: Exporting from each project individually does not provide a centrally managed, unified perspective and is administratively complex.",
+      "D": "Incorrect: Using a publicly shared bucket is a massive security risk and a violation of compliance."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/logging/docs/export/aggregated_sinks",
+      "B": "https://cloud.google.com/logging/docs/export/aggregated_sinks",
+      "C": "https://cloud.google.com/logging/docs/export/aggregated_sinks",
+      "D": "https://cloud.google.com/storage/docs/access-control/iam"
+    },
+    "hint": "You need to export logs for multiple projects grouped together under a specific categorization. How do you centralize log export configuration at a higher hierarchy level?"
+  },
+  {
+    "question": "A customer needs to prevent attackers from hijacking their domain/IP and redirecting users to a malicious site through a man-in-the-middle\nattack.\nWhich solution should this customer use?",
+    "options": {
+      "A": "VPC Flow Logs",
+      "B": "Cloud Armor",
+      "C": "Implement DNSSEC for Cloud DNS",
+      "D": "Cloud Identity-Aware Proxy"
+    },
+    "answer": "C",
+    "explanations": {
+      "A": "Incorrect: VPC Flow Logs capture network telemetry data for analytics, not for protecting against DNS hijacking or MITM.",
+      "B": "Incorrect: Cloud Armor is a WAF meant to protect web applications from DDoS and specific Layer 7 attacks, it doesn't prevent domain hijacking.",
+      "C": "Correct: Implementing DNSSEC (Domain Name System Security Extensions) on Cloud DNS cryptographically signs records, preventing attackers from intercepting DNS requests (DNS hijacking) and redirecting traffic via a Man-in-the-Middle attack.",
+      "D": "Incorrect: Identity-Aware Proxy verifies identity before granting access to an application, but does not stop DNS hijacking."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/vpc/docs/using-flow-logs",
+      "B": "https://cloud.google.com/armor/docs/cloud-armor-overview",
+      "C": "https://cloud.google.com/dns/docs/dnssec",
+      "D": "https://cloud.google.com/iap/docs"
+    },
+    "hint": "Which protocol extension cryptographically signs DNS records to ensure the responses haven't been tampered with in transit?"
+  },
+  {
+    "question": "A customer deploys an application to App Engine and needs to check for Open Web Application Security Project (OWASP) vulnerabilities.\nWhich service should be used to accomplish this?",
+    "options": {
+      "A": "Cloud Armor",
+      "B": "Google Cloud Audit Logs",
+      "C": "Web Security Scanner",
+      "D": "Anomaly Detection"
+    },
+    "answer": "C",
+    "explanations": {
+      "A": "Incorrect: Cloud Armor is a Web Application Firewall that defends against OWASP top 10 at runtime, but doesn't scan the code or application for vulnerabilities.",
+      "B": "Incorrect: Audit logs record administrative actions in GCP, not application vulnerabilities.",
+      "C": "Correct: Web Security Scanner identifies security vulnerabilities (like XSS, Flash injection, out-of-date libraries) in your App Engine, GKE, and Compute Engine web applications.",
+      "D": "Incorrect: Anomaly Detection looks for unusual behavioral patterns, not code/configuration vulnerabilities."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/armor/docs",
+      "B": "https://cloud.google.com/logging/docs/audit",
+      "C": "https://cloud.google.com/security-command-center/docs/concepts-web-security-scanner-overview",
+      "D": "https://cloud.google.com/security-command-center/docs"
+    },
+    "hint": "You are looking for a managed service that actively crawls and tests web applications for common vulnerabilities like cross-site scripting (XSS) at runtime."
+  },
+  {
+    "question": "A customer's data science group wants to use Google Cloud Platform (GCP) for their analytics workloads. Company policy dictates that all data\nmust be company-owned and all user authentications must go through their own Security Assertion Markup Language (SAML) 2.0 Identity\nProvider (IdP). The\nInfrastructure Operations Systems Engineer was trying to set up Cloud Identity for the customer and realized that their domain was already being\nused by G Suite.\nHow should you best advise the Systems Engineer to proceed with the least disruption?",
+    "options": {
+      "A": "Contact Google Support and initiate the Domain Contestation Process to use the domain name in your new Cloud Identity domain.",
+      "B": "Register a new domain name, and use that for the new Cloud Identity domain.",
+      "C": "Ask Google to provision the data science manager's account as a Super Administrator in the existing domain.",
+      "D": "Ask customer's management to discover any other uses of Google managed services, and work with the existing Super Administrator."
+    },
+    "answer": "C",
+    "explanations": {
+      "A": "Incorrect: Initiating a Domain Contestation Process is highly disruptive and assumes the current use is invalid.",
+      "B": "Incorrect: Registering a new domain splits the corporate identity and creates administrative overhead for managing SAML/SSO links.",
+      "C": "Correct: The least disruptive method is to identify the existing Super Administrator of the G Suite domain (already managed by the company) and have them manage the Cloud Identity needs, or provision the data science manager with the necessary Admin roles securely.",
+      "D": "Incorrect: This just kicks the can down the road and doesn't explicitly resolve the infrastructure needs."
+    },
+    "sources": {
+      "A": "https://support.google.com/a/answer/140034?hl=en",
+      "B": "https://support.google.com/a/answer/53926?hl=en",
+      "C": "https://cloud.google.com/architecture/identity/overview-google-authentication",
+      "D": "https://cloud.google.com/architecture/identity/overview-google-authentication"
+    },
+    "hint": "The company already uses G Suite (Google Workspace). Cloud Identity can often be managed seamlessly by the administrators of the existing domain."
+  },
+  {
+    "question": "A business unit at a multinational corporation signs up for GCP and starts moving workloads into GCP. The business unit creates a Cloud Identity\ndomain with an organizational resource that has hundreds of projects.\nYour team becomes aware of this and wants to take over managing permissions and auditing the domain resources.\nWhich type of access should your team grant to meet this requirement?",
+    "options": {
+      "A": "Organization Administrator",
+      "B": "Security Reviewer",
+      "C": "Organization Role Administrator",
+      "D": "Organization Policy Administrator"
+    },
+    "answer": "C",
+    "explanations": {
+      "A": "Incorrect: Organization Administrator has very broad privileges, including changing organization policies, which might exceed the principle of least privilege for just managing permissions and auditing.",
+      "B": "Incorrect: Security Reviewer is a read-only role and wouldn't allow the team to manage permissions.",
+      "C": "Correct: Organization Role Administrator allows managing custom roles and IAM policies (permissions) across the organization, directly fulfilling the requirement to manage permissions.",
+      "D": "Incorrect: Organization Policy Admin manages resource constraints (Org Policies), not IAM permissions."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/iam/docs/understanding-roles#organization-roles",
+      "B": "https://cloud.google.com/iam/docs/understanding-roles#organization-roles",
+      "C": "https://cloud.google.com/iam/docs/understanding-roles#organization-roles",
+      "D": "https://cloud.google.com/iam/docs/understanding-roles#organization-roles"
+    },
+    "hint": "Look for the specific IAM role that explicitly grants the ability to define and assign access policies across the entire GCP organization."
+  },
+  {
+    "question": "An application running on a Compute Engine instance needs to read data from a Cloud Storage bucket. Your team does not allow Cloud Storage\nbuckets to be globally readable and wants to ensure the principle of least privilege.\nWhich option meets the requirement of your team?",
+    "options": {
+      "A": "Create a Cloud Storage ACL that allows read-only access from the Compute Engine instance's IP address and allows the application to read\nfrom the bucket without credentials.",
+      "B": "Use a service account with read-only access to the Cloud Storage bucket, and store the credentials to the service account in the config of\nthe application on the Compute Engine instance.",
+      "C": "Use a service account with read-only access to the Cloud Storage bucket to retrieve the credentials from the instance metadata.",
+      "D": "Encrypt the data in the Cloud Storage bucket using Cloud KMS, and allow the application to decrypt the data with the KMS key."
+    },
+    "answer": "C",
+    "explanations": {
+      "A": "Incorrect: IP-based ACLs for Cloud Storage are not the recommended practice for GCP services, and relying on IP identity is less secure than IAM.",
+      "B": "Incorrect: Storing service account credential keys (JSON files) inside the application configuration is a security risk if the instance is compromised.",
+      "C": "Correct: Attaching a Service Account to the Compute Engine instance allows the application to automatically retrieve temporary OAuth2 credentials from the local metadata server, maintaining least privilege without managing static keys.",
+      "D": "Incorrect: KMS encryption encrypts the data at rest, but doesn't solve the authorization problem of how to restrict bucket read access securely."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/storage/docs/access-control/iam",
+      "B": "https://cloud.google.com/iam/docs/best-practices-for-managing-service-account-keys",
+      "C": "https://cloud.google.com/compute/docs/access/create-enable-service-accounts-for-instances",
+      "D": "https://cloud.google.com/kms/docs/envelope-encryption"
+    },
+    "hint": "For an application running on Compute Engine, what is the most secure, native way to provide it with temporary, automatically rotating credentials?"
+  },
+  {
+    "question": "An organization's typical network and security review consists of analyzing application transit routes, request handling, and firewall rules. They\nwant to enable their developer teams to deploy new applications without the overhead of this full review.\nHow should you advise this organization?",
+    "options": {
+      "A": "Use Forseti with Firewall filters to catch any unwanted configurations in production.",
+      "B": "Mandate use of infrastructure as code and provide static analysis in the CI/CD pipelines to enforce policies.",
+      "C": "Route all VPC traffic through customer-managed routers to detect malicious patterns in production.",
+      "D": "All production applications will run on-premises. Allow developers free rein in GCP as their dev and QA platforms."
+    },
+    "answer": "B",
+    "explanations": {
+      "A": "Incorrect: Forseti is good for post-deployment monitoring and drift detection, but doesn't do static analysis in the CI/CD pipeline proactively.",
+      "B": "Correct: Implementing Infrastructure as Code (IaC) with tools like Terraform, and using static analysis tools (like tfsec or Checkov) in the CI/CD pipeline, enforces security policies proactively without manual review overhead.",
+      "C": "Incorrect: Routing all VPC traffic through customer-managed routers adds operations overhead, single points of failure, and doesn't replace architecture reviews.",
+      "D": "Incorrect: Moving all production on-prem defeats the purpose of cloud scalability and does not securely enable developer autonomy in GCP."
+    },
+    "sources": {
+      "A": "https://forsetisecurity.org/docs/latest/concepts/",
+      "B": "https://cloud.google.com/docs/security/infrastructure/secure-service-deployment",
+      "C": "https://cloud.google.com/vpc/docs/routes",
+      "D": "https://cloud.google.com/hybrid"
+    },
+    "hint": "Consider how you can automate security checks *before* infrastructure is deployed. How does modern DevOps enforce policies in code?"
+  },
+  {
+    "question": "An employer wants to track how bonus compensations have changed over time to identify employee outliers and correct earning disparities. This\ntask must be performed without exposing the sensitive compensation data for any individual and must be reversible to identify the outlier.\nWhich Cloud Data Loss Prevention API technique should you use to accomplish this?",
+    "options": {
+      "A": "Generalization",
+      "B": "Redaction",
+      "C": "CryptoHashConfig",
+      "D": "CryptoReplaceFfxFpeConfig"
+    },
+    "answer": "B",
+    "explanations": {
+      "A": "Incorrect: Generalization reduces the specificity of data (e.g. converting age 42 to age range 40-50), which makes identifying exact outliers hard and is not typically reversible.",
+      "B": "Incorrect: Redaction completely removes the data. It cannot be reversed.",
+      "C": "Incorrect: CryptoHashConfig permanently obfuscates the data via one-way hashing, which is not reversible.",
+      "D": "Correct: Format-Preserving Encryption (CryptoReplaceFfxFpeConfig) encrypts the sensitive values while maintaining their formatting. Since it uses encryption, it is reversible (tokenization/pseudonymization) by users with the correct KMS key, allowing specific outliers to be identified later."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/dlp/docs/transformations-reference#generalization",
+      "B": "https://cloud.google.com/dlp/docs/transformations-reference#redaction",
+      "C": "https://cloud.google.com/dlp/docs/transformations-reference#cryptohashconfig",
+      "D": "https://cloud.google.com/dlp/docs/transformations-reference#cryptoreplaceffxfpeconfig"
+    },
+    "hint": "You need a transformation method that encrypts the data (so it can be reversed/decrypted later) but keeps the original format intact so databases don't break."
+  },
+  {
+    "question": "An organization adopts Google Cloud Platform (GCP) for application hosting services and needs guidance on setting up password requirements\nfor their Cloud\nIdentity account. The organization has a password policy requirement that corporate employee passwords must have a minimum number of\ncharacters.\nWhich Cloud Identity password guidelines can the organization use to inform their new requirements?",
+    "options": {
+      "A": "Set the minimum length for passwords to be 8 characters.",
+      "B": "Set the minimum length for passwords to be 10 characters.",
+      "C": "Set the minimum length for passwords to be 12 characters.",
+      "D": "Set the minimum length for passwords to be 6 characters."
+    },
+    "answer": "A",
+    "explanations": {
+      "A": "Correct: Google Cloud Identity password guidelines recommend a minimum length of 8 characters, while strong recommendations often suggest longer, 8 is the configurable minimum for many standard compliance baselines in G Suite/Cloud Identity.",
+      "B": "Incorrect: Cloud Identity's baseline minimum allowed is lower than 10.",
+      "C": "Incorrect: Cloud Identity's baseline minimum allowed is lower than 12.",
+      "D": "Incorrect: 6 characters is too short according to Google's best practices (which mandate at least 8)."
+    },
+    "sources": {
+      "A": "https://support.google.com/a/answer/33386?hl=en",
+      "B": "https://support.google.com/a/answer/33386?hl=en",
+      "C": "https://support.google.com/a/answer/33386?hl=en",
+      "D": "https://support.google.com/a/answer/33386?hl=en"
+    },
+    "hint": "Think about standard industry baselines for minimum password length that balance usability and brute-force resistance. Google enforces this as the minimum floor in Cloud Identity."
+  },
+  {
+    "question": "You need to follow Google-recommended practices to leverage envelope encryption and encrypt data at the application layer.\nWhat should you do?",
+    "options": {
+      "A": "Generate a data encryption key (DEK) locally to encrypt the data, and generate a new key encryption key (KEK) in Cloud KMS to encrypt the\nDEK. Store both the encrypted data and the encrypted DEK.",
+      "B": "Generate a data encryption key (DEK) locally to encrypt the data, and generate a new key encryption key (KEK) in Cloud KMS to encrypt the\nDEK. Store both the encrypted data and the KEK.",
+      "C": "Generate a new data encryption key (DEK) in Cloud KMS to encrypt the data, and generate a key encryption key (KEK) locally to encrypt the\nkey. Store both the encrypted data and the encrypted DEK.",
+      "D": "Generate a new data encryption key (DEK) in Cloud KMS to encrypt the data, and generate a key encryption key (KEK) locally to encrypt the\nkey. Store both the encrypted data and the KEK."
+    },
+    "answer": "A",
+    "explanations": {
+      "A": "Correct: Envelope Encryption involves generating a symmetric Data Encryption Key (DEK) locally to encrypt the data. Because managing thousands of DEKs is hard, you send the DEK to Cloud KMS to be encrypted by a Key Encryption Key (KEK). You then store the encrypted DEK alongside the encrypted data.",
+      "B": "Incorrect: You do not store the KEK locally; the KEK remains securely in Cloud KMS.",
+      "C": "Incorrect: Cloud KMS handles the KEK, not the generation of the local DEK. Generating the KEK locally defeats the purpose of Cloud KMS.",
+      "D": "Incorrect: The KEK must reside in KMS, not locally."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/kms/docs/envelope-encryption",
+      "B": "https://cloud.google.com/kms/docs/envelope-encryption",
+      "C": "https://cloud.google.com/kms/docs/envelope-encryption",
+      "D": "https://cloud.google.com/kms/docs/envelope-encryption"
+    },
+    "hint": "In envelope encryption, the service (KMS) holds the master key (KEK), while you use another key locally (DEK) to encrypt the actual data. How does KMS interact with your local key?"
+  },
+  {
+    "question": "How should a customer reliably deliver Stackdriver logs from GCP to their on-premises SIEM system?",
+    "options": {
+      "A": "Send all logs to the SIEM system via an existing protocol such as syslog.",
+      "B": "Configure every project to export all their logs to a common BigQuery DataSet, which will be queried by the SIEM system.",
+      "C": "Configure Organizational Log Sinks to export logs to a Cloud Pub/Sub Topic, which will be sent to the SIEM via Dataflow.",
+      "D": "Build a connector for the SIEM to query for all logs in real time from the GCP RESTful JSON APIs."
+    },
+    "answer": "C",
+    "explanations": {
+      "A": "Incorrect: Syslog doesn't natively route natively out of Stackdriver without an intermediary.",
+      "B": "Incorrect: BigQuery is for data warehousing and analytics; a SIEM doesn't typically query BQ in real-time for stream ingest.",
+      "C": "Correct: Creating an Organizational Log Sink targeting a Cloud Pub/Sub topic ensures all logs are captured centrally. A Dataflow job or a Pub/Sub pull subscriber on the SIEM side can then reliably stream logs in real-time to the on-prem SIEM.",
+      "D": "Incorrect: Querying REST APIs constantly to fetch logs is not scalable or real-time (polling vs event-driven)."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/architecture/exporting-stackdriver-logging-for-security-and-access-analytics",
+      "B": "https://cloud.google.com/architecture/exporting-stackdriver-logging-for-security-and-access-analytics",
+      "C": "https://cloud.google.com/architecture/exporting-stackdriver-logging-for-security-and-access-analytics",
+      "D": "https://cloud.google.com/architecture/exporting-stackdriver-logging-for-security-and-access-analytics"
+    },
+    "hint": "You need to ingest logs into a third-party, potentially on-premise SIEM in real-time. Which GCP messaging service acts as a perfect buffer and delivery mechanism for streaming data?"
+  },
+  {
+    "question": "In order to meet PCI DSS requirements, a customer wants to ensure that all outbound traffic is authorized.\nWhich two cloud offerings meet this requirement without additional compensating controls? (Choose two.)",
+    "options": {
+      "A": "App Engine",
+      "B": "Cloud Functions",
+      "C": "Compute Engine",
+      "D": "Google Kubernetes Engine",
+      "E": "Cloud Storage"
+    },
+    "answer": "AC",
+    "explanations": {
+      "A": "Correct: App Engine allows defining egress firewall rules and VPC Serverless Access connecting to restricting outbound connections.",
+      "B": "Incorrect: Cloud Functions has limited egress controls without additional VPC Serverless VPC connector controls.",
+      "C": "Correct: Compute Engine instances run inside a VPC where outbound traffic can be explicitly controlled via VPC Firewall rules, meeting PCI DSS requirements without extra compensating controls.",
+      "D": "Incorrect: GKE requires configuring Network Policies (extra compensating control) to strictly manage egress per pod.",
+      "E": "Incorrect: Cloud Storage is not an application execution environment generating outbound traffic."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/appengine/docs/standard/python3/configuring-firewalls",
+      "B": "https://cloud.google.com/functions/docs/networking/network-settings",
+      "C": "https://cloud.google.com/vpc/docs/firewalls",
+      "D": "https://cloud.google.com/kubernetes-engine/docs/concepts/network-policy",
+      "E": "https://cloud.google.com/storage/docs/access-control"
+    },
+    "hint": "Which computing environment provides native, granular control over egress network traffic using standard VPC Firewall rules?"
+  },
+  {
+    "question": "A website design company recently migrated all customer sites to App Engine. Some sites are still in progress and should only be visible to\ncustomers and company employees from any location.\nWhich solution will restrict access to the in-progress sites?",
+    "options": {
+      "A": "Upload an .htaccess file containing the customer and employee user accounts to App Engine.",
+      "B": "Create an App Engine firewall rule that allows access from the customer and employee networks and denies all other traffic.",
+      "C": "Enable Cloud Identity-Aware Proxy (IAP), and allow access to a Google Group that contains the customer and employee user accounts.",
+      "D": "Use Cloud VPN to create a VPN connection between the relevant on-premises networks and the company's GCP Virtual Private Cloud (VPC)\nnetwork."
+    },
+    "answer": "C",
+    "explanations": {
+      "A": "Incorrect: App Engine does not use traditional Apache .htaccess files for authentication.",
+      "B": "Incorrect: App Engine firewall rules act on IP addresses natively. Employees could be working from anywhere (dynamic IPs), making IP-based firewalls difficult to manage.",
+      "C": "Correct: Cloud Identity-Aware Proxy (IAP) places a Google authentication layer in front of the application. By granting access to a Google Group containing employees and customers, anyone not authenticated is blocked regardless of their location.",
+      "D": "Incorrect: Cloud VPN connects networks, but giving customers VPN access to internal networks is a massive security risk and overcomplicated for a web app."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/appengine/docs",
+      "B": "https://cloud.google.com/appengine/docs/standard/python3/configuring-firewalls",
+      "C": "https://cloud.google.com/iap/docs/concepts-overview",
+      "D": "https://cloud.google.com/network-connectivity/docs/vpn/concepts/overview"
+    },
+    "hint": "You need an authentication layer that sits in front of the web application and verifies user identity against Google Groups, regardless of where the user connects from."
+  },
+  {
+    "question": "When working with agents in the support center via online chat, your organization's customers often share pictures of their documents with\npersonally identifiable information (PII). Your leadership team is concerned that this PII is being stored as part of the regular chat logs, which are\nreviewed by internal or external analysts for customer service trends.\nYou want to resolve this concern while still maintaining data utility. What should you do?",
+    "options": {
+      "A": "Use Cloud Key Management Service to encrypt PII shared by customers before storing it for analysis.",
+      "B": "Use Object Lifecycle Management to make sure that all chat records containing PII are discarded and not saved for analysis.",
+      "C": "Use the image inspection and redaction actions of the DLP API to redact PII from the images before storing them for analysis.",
+      "D": "Use the generalization and bucketing actions of the DLP API solution to redact PII from the texts before storing them for analysis."
+    },
+    "answer": "C",
+    "explanations": {
+      "A": "Incorrect: Encrypting the entire chat log doesn't remove the PII from the analyst's view when they legitimately need to decrypt the log to analyze customer service trends.",
+      "B": "Incorrect: Deleting the logs destroys the data utility entirely.",
+      "C": "Correct: The Cloud Data Loss Prevention (DLP) API has image inspection capabilities that can detect localized PII (like a credit card in an image) and redact it (black out the pixels), ensuring the rest of the document/image remains useful for text/trend analysis.",
+      "D": "Incorrect: Texts are not the same as images, and bucketing doesn't explicitly redact an image's visible PII."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/kms/docs",
+      "B": "https://cloud.google.com/storage/docs/lifecycle",
+      "C": "https://cloud.google.com/dlp/docs/inspecting-images",
+      "D": "https://cloud.google.com/dlp/docs/transformations-reference"
+    },
+    "hint": "You need a service capable of analyzing images (OCR) to proactively find and obscure sensitive data before it's saved."
+  },
+  {
+    "question": "A company's application is deployed with a user-managed Service Account key. You want to use Google-recommended practices to rotate the key.\nWhat should you do?",
+    "options": {
+      "A": "Open Cloud Shell and run gcloud iam service-accounts enable-auto-rotate --iam-account=IAM_ACCOUNT.",
+      "B": "Open Cloud Shell and run gcloud iam service-accounts keys rotate --iam-account=IAM_ACCOUNT --key=NEW_KEY.",
+      "C": "Create a new key, and use the new key in the application. Delete the old key from the Service Account.",
+      "D": "Create a new key, and use the new key in the application. Store the old key on the system as a backup key."
+    },
+    "answer": "C",
+    "explanations": {
+      "A": "Incorrect: No such automated command `enable-auto-rotate` exists for user-managed keys.",
+      "B": "Incorrect: Providing a NEW_KEY flag in this manner is not a valid gcloud command syntax for IAM service accounts.",
+      "C": "Correct: Google-recommended practice for user-managed keys is to create a new key, update your application configuration to use the new key, verify it works, and then delete the old key from the GCP console.",
+      "D": "Incorrect: Storing the old key as a locally backed up key contradicts security best practices since an exposed old key can still be used if not rotated out of GCP."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/iam/docs/creating-managing-service-account-keys",
+      "B": "https://cloud.google.com/iam/docs/creating-managing-service-account-keys",
+      "C": "https://cloud.google.com/iam/docs/creating-managing-service-account-keys",
+      "D": "https://cloud.google.com/iam/docs/best-practices-for-managing-service-account-keys"
+    },
+    "hint": "Security best practices dictate that key rotation should involve creating a new key, switching the application over, and *then* deleting the old key."
+  },
+  {
+    "question": "Your team needs to configure their Google Cloud Platform (GCP) environment so they can centralize the control over networking resources like\nfirewall rules, subnets, and routes. They also have an on-premises environment where resources need access back to the GCP resources through a\nprivate VPN connection.\nThe networking resources will need to be controlled by the network security team.\nWhich type of networking design should your team use to meet these requirements?",
+    "options": {
+      "A": "Shared VPC Network with a host project and service projects",
+      "B": "Grant Compute Admin role to the networking team for each engineering project",
+      "C": "VPC peering between all engineering projects using a hub and spoke model",
+      "D": "Cloud VPN Gateway between all engineering projects using a hub and spoke model"
+    },
+    "answer": "A",
+    "explanations": {
+      "A": "Correct: Shared VPC permits a centralized organization setup where a 'Host Project' contains the VPC, Subnets, and Firewall rules managed by the network security team. 'Service Projects' (engineering projects) can attach resources (like VMs) to these centralized subnets. The VPN gateway can also reside centrally in the Host Project.",
+      "B": "Incorrect: Giving Compute Admin to the networking team across all projects violates least privilege and disperses control rather than centralizing it.",
+      "C": "Incorrect: VPC peering at scale (hub and spoke) entails significant routing complexity and quota limits, and doesn't inherently centralize firewall policy management cleanly.",
+      "D": "Incorrect: Creating Cloud VPN gateways across all projects does not centralize subnet/firewall management; it creates a sprawling mesh."
+    },
+    "sources": {
+      "A": "https://cloud.google.com/vpc/docs/shared-vpc",
+      "B": "https://cloud.google.com/iam/docs/understanding-roles#compute-roles",
+      "C": "https://cloud.google.com/vpc/docs/vpc-peering",
+      "D": "https://cloud.google.com/network-connectivity/docs/vpn/concepts/overview"
+    },
+    "hint": "Which networking construct allows a central 'host' project to manage subnets and firewalls, while allowing 'service' projects to securely attach VMs to those subnets?"
+  }
+]
