@@ -5,7 +5,7 @@ let userScore = 0;
 let totalAnswered = 0;
 let selectedOptions = new Set();
 let isAnswerSubmitted = false;
-let currentRange = { start: 1, end: 25 };
+let currentRange = { start: 1, end: null };
 
 let selectedTags = new Set();
 let timerInterval = null;
