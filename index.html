@@ -66,12 +66,82 @@
 
             <!-- Main Workspace -->
             <main>
-                <div id="loading" class="state-view">
+                <!-- Application Setup View -->
+                <div id="setup-view" class="state-view glass-panel">
+                    <h2>Quiz Configuration</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Select a question range or resume a previous session.</p>
+                    
+                    <div id="resumeCont" class="hidden" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(88, 166, 255, 0.1); border: 1px solid var(--accent-blue); border-radius: 12px;">
+                        <h3 style="margin-bottom: 0.5rem; color: var(--accent-blue);">Active Session Found</h3>
+                        <p id="resumeDetails" style="margin-bottom: 1rem; font-size: 0.9rem;"></p>
+                        <button id="resumeBtn" class="primary-btn" style="width: 100%;">Resume Quiz</button>
+                    </div>
+
+                    <div id="weaknessesCont" class="hidden" style="margin-bottom: 2rem;">
+                        <button id="retakeMissedBtn" class="secondary-btn highlighted" style="width: 100%; justify-content: center; color: var(--accent-red); border-color: var(--accent-red);">
+                            🎯 Retake <span id="missedCount" style="margin: 0 4px; font-weight: bold;">0</span> Missed Questions
+                        </button>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 8px; padding: 1rem; margin-bottom: 2rem;">
+                        <h4 style="margin-bottom: 1rem; color: var(--accent-blue); font-size: 0.95rem;">Filter by Topic</h4>
+                        <div id="tagFilters" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            <!-- Tag checkboxes populated by JS -->
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">Start Question</label>
+                            <input type="number" id="rangeStart" value="1" min="1" max="25" class="text-input" style="width: 100%;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">End Question</label>
+                            <input type="number" id="rangeEnd" value="25" min="1" max="25" class="text-input" style="width: 100%;">
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding: 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid var(--glass-border);">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="font-size: 1.25rem;">⏱️</span>
+                            <div>
+                                <strong style="display: block; font-size: 0.95rem;">Exam Simulation Mode</strong>
+                                <span style="font-size: 0.8rem; color: var(--text-secondary);">2.4 mins per question. Auto-submits on 0:00!</span>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="examModeToggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <button id="startNewBtn" class="primary-btn" style="width: 100%; margin-bottom: 1rem;">Start New Quiz</button>
+                    <button id="viewHistoryBtn" class="secondary-btn" style="width: 100%;">View Progress History</button>
+                </div>
+
+                <!-- History View -->
+                <div id="history-view" class="state-view hidden glass-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2>Progress History</h2>
+                        <button id="backFromHistoryBtn" class="icon-btn">×</button>
+                    </div>
+                    
+                    <div id="historyList" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- History items populated by JS -->
+                        <p style="color: var(--text-secondary); text-align: center;">No history found.</p>
+                    </div>
+                </div>
+
+                <div id="loading" class="state-view hidden">
                     <div class="spinner"></div>
                     <p>Loading questions...</p>
                 </div>
                 
                 <div id="quiz" class="state-view hidden">
+                    <div id="examTimer" class="hidden" style="position: sticky; top: 1rem; z-index: 50; background: rgba(13, 17, 23, 0.9); border: 2px solid var(--accent-red); color: white; padding: 0.75rem 1.5rem; border-radius: 30px; margin: 0 auto 1.5rem auto; width: max-content; font-weight: bold; font-variant-numeric: tabular-nums; box-shadow: 0 0 15px rgba(248, 81, 73, 0.3); backdrop-filter: blur(10px);">
+                        ⏱️ <span id="timerText">00:00</span>
+                    </div>
+
                     <div class="question-blob"></div>
                     <div class="question-blob blob2"></div>
 
@@ -116,7 +186,16 @@
                         <span id="finalScoreText">0/25</span>
                         <span>Correct</span>
                     </div>
-                    <button id="restartBtn" class="primary-btn">Retake Quiz</button>
+                    
+                    <div style="text-align: left; margin: 2rem 0;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">Personal Notes (Optional)</label>
+                        <textarea id="quizNotes" class="text-input" rows="3" placeholder="What did you learn? What should you review next?" style="width: 100%; resize: vertical; margin-bottom: 1rem;"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; width: 100%;">
+                        <button id="saveHistoryBtn" class="primary-btn" style="flex: 2;">Save Score to History</button>
+                        <button id="restartBtn" class="secondary-btn" style="flex: 1;">Setup Menu</button>
+                    </div>
                 </div>
             </div>
         </main>

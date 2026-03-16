@@ -23,7 +23,11 @@
       "D": "https://cloud.google.com/vpc/docs/routes",
       "E": "https://cloud.google.com/iam/docs/understanding-roles#compute.networkUser"
     },
-    "hint": "Think about how instances receive routing and address assignments. What specific component allows an instance to communicate directly with the internet?"
+    "hint": "Think about how instances receive routing and address assignments. What specific component allows an instance to communicate directly with the internet?",
+    "tags": [
+      "IAM",
+      "Compute"
+    ]
   },
   {
     "question": "Which two implied firewall rules are defined on a VPC network? (Choose two.)",
@@ -49,7 +53,10 @@
       "D": "https://cloud.google.com/vpc/docs/firewalls#default_firewall_rules",
       "E": "https://cloud.google.com/vpc/docs/firewalls#default_firewall_rules"
     },
-    "hint": "Consider what kind of traffic a newly created VPC allows or denies by default without any custom rules. How does traffic flow in vs out?"
+    "hint": "Consider what kind of traffic a newly created VPC allows or denies by default without any custom rules. How does traffic flow in vs out?",
+    "tags": [
+      "Networking"
+    ]
   },
   {
     "question": "A customer needs an alternative to storing their plain text secrets in their source-code management (SCM) system.\nHow should the customer achieve this using Google Cloud Platform?",
@@ -72,7 +79,12 @@
       "C": "https://cloud.google.com/dlp/docs",
       "D": "https://cloud.google.com/compute/docs/instances/preemptible"
     },
-    "hint": "You are looking for a solution that encrypts the sensitive material *before* it gets committed to the repository, utilizing a centralized key management service."
+    "hint": "You are looking for a solution that encrypts the sensitive material *before* it gets committed to the repository, utilizing a centralized key management service.",
+    "tags": [
+      "Networking",
+      "Data & Storage",
+      "Compute"
+    ]
   },
   {
     "question": "Your team wants to centrally manage GCP IAM permissions from their on-premises Active Directory Service. Your team wants to manage\npermissions by AD group membership.\nWhat should your team do to meet these requirements?",
@@ -95,7 +107,10 @@
       "C": "https://cloud.google.com/iam/docs",
       "D": "https://developers.google.com/admin-sdk"
     },
-    "hint": "Look for the tool designed explicitly to bridge Microsoft's directory service with Google's identity platform."
+    "hint": "Look for the tool designed explicitly to bridge Microsoft's directory service with Google's identity platform.",
+    "tags": [
+      "IAM"
+    ]
   },
   {
     "question": "When creating a secure container image, which two items should you incorporate into the build if possible? (Choose two.)",
@@ -121,7 +136,10 @@
       "D": "https://cloud.google.com/architecture/best-practices-for-building-containers",
       "E": "https://cloud.google.com/architecture/best-practices-for-building-containers"
     },
-    "hint": "If an attacker compromises one part of the container, you want to limit what else they can do. Reducing the 'attack surface' is key."
+    "hint": "If an attacker compromises one part of the container, you want to limit what else they can do. Reducing the 'attack surface' is key.",
+    "tags": [
+      "General Security"
+    ]
   },
   {
     "question": "A customer needs to launch a 3-tier internal web application on Google Cloud Platform (GCP). The customer's internal compliance requirements\ndictate that end- user access may only be allowed if the traffic seems to originate from a specific known good CIDR. The customer accepts the\nrisk that their application will only have SYN flood DDoS protection. They want to use GCP's native SYN flood protection.\nWhich product should be used to meet these requirements?",
@@ -144,7 +162,11 @@
       "C": "https://cloud.google.com/iam/docs",
       "D": "https://cloud.google.com/cdn/docs"
     },
-    "hint": "Which GCP service acts at the edge as a Web Application Firewall (WAF) to filter incoming HTTP(S) traffic based on IP or geography?"
+    "hint": "Which GCP service acts at the edge as a Web Application Firewall (WAF) to filter incoming HTTP(S) traffic based on IP or geography?",
+    "tags": [
+      "IAM",
+      "Networking"
+    ]
   },
   {
     "question": "A company is running workloads in a dedicated server room. They must only be accessed from within the private company network. You need to\nconnect to these workloads from Compute Engine instances within a Google Cloud Platform project.\nWhich two approaches can you take to meet the requirements? (Choose two.)",
@@ -170,7 +192,12 @@
       "D": "https://cloud.google.com/vpc/docs/vpc-peering",
       "E": "https://cloud.google.com/vpc/docs/configure-private-google-access"
     },
-    "hint": "A dedicated server room implies a physical location separate from GCP. Which service physically connects an on-premise network to a VPC with high reliability?"
+    "hint": "A dedicated server room implies a physical location separate from GCP. Which service physically connects an on-premise network to a VPC with high reliability?",
+    "tags": [
+      "IAM",
+      "Networking",
+      "Compute"
+    ]
   },
   {
     "question": "A customer implements Cloud Identity-Aware Proxy for their ERP system hosted on Compute Engine. Their security team wants to add a security\nlayer so that the\nERP systems only accept traffic from Cloud Identity-Aware Proxy.\nWhat should the customer do to meet these requirements?",
@@ -193,7 +220,11 @@
       "C": "https://cloud.google.com/iap/docs/signed-headers-howto",
       "D": "https://cloud.google.com/iap/docs/signed-headers-howto"
     },
-    "hint": "Identity-Aware Proxy passes identity information downstream. How can you cryptographically verify that this information hasn't been spoofed by a client directly hitting the backend?"
+    "hint": "Identity-Aware Proxy passes identity information downstream. How can you cryptographically verify that this information hasn't been spoofed by a client directly hitting the backend?",
+    "tags": [
+      "IAM",
+      "Compute"
+    ]
   },
   {
     "question": "A company has been running their application on Compute Engine. A bug in the application allowed a malicious user to repeatedly execute a script\nthat results in the Compute Engine instance crashing. Although the bug has been fixed, you want to get notified in case this hack re-occurs.\nWhat should you do?",
@@ -216,7 +247,12 @@
       "C": "https://cloud.google.com/logging/docs/logs-based-metrics",
       "D": "https://cloud.google.com/logging/docs/export/configure_export_v2"
     },
-    "hint": "You need a mechanism that counts specific text occurrences in logs and translates them into a time-series data point you can alert on."
+    "hint": "You need a mechanism that counts specific text occurrences in logs and translates them into a time-series data point you can alert on.",
+    "tags": [
+      "Data & Storage",
+      "Compute",
+      "Security Operations"
+    ]
   },
   {
     "question": "Your team needs to obtain a unified log view of all development cloud projects in your SIEM. The development projects are under the NONPROD\norganization folder with the test and pre-production projects. The development projects share the ABC-BILLING billing account with the rest of the\norganization.\nWhich logging export strategy should you use to meet the requirements?",
@@ -239,7 +275,11 @@
       "C": "https://cloud.google.com/logging/docs/export/aggregated_sinks",
       "D": "https://cloud.google.com/storage/docs/access-control/iam"
     },
-    "hint": "You need to export logs for multiple projects grouped together under a specific categorization. How do you centralize log export configuration at a higher hierarchy level?"
+    "hint": "You need to export logs for multiple projects grouped together under a specific categorization. How do you centralize log export configuration at a higher hierarchy level?",
+    "tags": [
+      "Data & Storage",
+      "Security Operations"
+    ]
   },
   {
     "question": "A customer needs to prevent attackers from hijacking their domain/IP and redirecting users to a malicious site through a man-in-the-middle\nattack.\nWhich solution should this customer use?",
@@ -262,7 +302,11 @@
       "C": "https://cloud.google.com/dns/docs/dnssec",
       "D": "https://cloud.google.com/iap/docs"
     },
-    "hint": "Which protocol extension cryptographically signs DNS records to ensure the responses haven't been tampered with in transit?"
+    "hint": "Which protocol extension cryptographically signs DNS records to ensure the responses haven't been tampered with in transit?",
+    "tags": [
+      "IAM",
+      "Networking"
+    ]
   },
   {
     "question": "A customer deploys an application to App Engine and needs to check for Open Web Application Security Project (OWASP) vulnerabilities.\nWhich service should be used to accomplish this?",
@@ -285,7 +329,12 @@
       "C": "https://cloud.google.com/security-command-center/docs/concepts-web-security-scanner-overview",
       "D": "https://cloud.google.com/security-command-center/docs"
     },
-    "hint": "You are looking for a managed service that actively crawls and tests web applications for common vulnerabilities like cross-site scripting (XSS) at runtime."
+    "hint": "You are looking for a managed service that actively crawls and tests web applications for common vulnerabilities like cross-site scripting (XSS) at runtime.",
+    "tags": [
+      "Networking",
+      "Compute",
+      "Security Operations"
+    ]
   },
   {
     "question": "A customer's data science group wants to use Google Cloud Platform (GCP) for their analytics workloads. Company policy dictates that all data\nmust be company-owned and all user authentications must go through their own Security Assertion Markup Language (SAML) 2.0 Identity\nProvider (IdP). The\nInfrastructure Operations Systems Engineer was trying to set up Cloud Identity for the customer and realized that their domain was already being\nused by G Suite.\nHow should you best advise the Systems Engineer to proceed with the least disruption?",
@@ -308,7 +357,10 @@
       "C": "https://cloud.google.com/architecture/identity/overview-google-authentication",
       "D": "https://cloud.google.com/architecture/identity/overview-google-authentication"
     },
-    "hint": "The company already uses G Suite (Google Workspace). Cloud Identity can often be managed seamlessly by the administrators of the existing domain."
+    "hint": "The company already uses G Suite (Google Workspace). Cloud Identity can often be managed seamlessly by the administrators of the existing domain.",
+    "tags": [
+      "IAM"
+    ]
   },
   {
     "question": "A business unit at a multinational corporation signs up for GCP and starts moving workloads into GCP. The business unit creates a Cloud Identity\ndomain with an organizational resource that has hundreds of projects.\nYour team becomes aware of this and wants to take over managing permissions and auditing the domain resources.\nWhich type of access should your team grant to meet this requirement?",
@@ -331,7 +383,12 @@
       "C": "https://cloud.google.com/iam/docs/understanding-roles#organization-roles",
       "D": "https://cloud.google.com/iam/docs/understanding-roles#organization-roles"
     },
-    "hint": "Look for the specific IAM role that explicitly grants the ability to define and assign access policies across the entire GCP organization."
+    "hint": "Look for the specific IAM role that explicitly grants the ability to define and assign access policies across the entire GCP organization.",
+    "tags": [
+      "IAM",
+      "Networking",
+      "Security Operations"
+    ]
   },
   {
     "question": "An application running on a Compute Engine instance needs to read data from a Cloud Storage bucket. Your team does not allow Cloud Storage\nbuckets to be globally readable and wants to ensure the principle of least privilege.\nWhich option meets the requirement of your team?",
@@ -354,7 +411,13 @@
       "C": "https://cloud.google.com/compute/docs/access/create-enable-service-accounts-for-instances",
       "D": "https://cloud.google.com/kms/docs/envelope-encryption"
     },
-    "hint": "For an application running on Compute Engine, what is the most secure, native way to provide it with temporary, automatically rotating credentials?"
+    "hint": "For an application running on Compute Engine, what is the most secure, native way to provide it with temporary, automatically rotating credentials?",
+    "tags": [
+      "IAM",
+      "Networking",
+      "Data & Storage",
+      "Compute"
+    ]
   },
   {
     "question": "An organization's typical network and security review consists of analyzing application transit routes, request handling, and firewall rules. They\nwant to enable their developer teams to deploy new applications without the overhead of this full review.\nHow should you advise this organization?",
@@ -377,7 +440,11 @@
       "C": "https://cloud.google.com/vpc/docs/routes",
       "D": "https://cloud.google.com/hybrid"
     },
-    "hint": "Consider how you can automate security checks *before* infrastructure is deployed. How does modern DevOps enforce policies in code?"
+    "hint": "Consider how you can automate security checks *before* infrastructure is deployed. How does modern DevOps enforce policies in code?",
+    "tags": [
+      "Networking",
+      "Security Operations"
+    ]
   },
   {
     "question": "An employer wants to track how bonus compensations have changed over time to identify employee outliers and correct earning disparities. This\ntask must be performed without exposing the sensitive compensation data for any individual and must be reversible to identify the outlier.\nWhich Cloud Data Loss Prevention API technique should you use to accomplish this?",
@@ -400,7 +467,10 @@
       "C": "https://cloud.google.com/dlp/docs/transformations-reference#cryptohashconfig",
       "D": "https://cloud.google.com/dlp/docs/transformations-reference#cryptoreplaceffxfpeconfig"
     },
-    "hint": "You need a transformation method that encrypts the data (so it can be reversed/decrypted later) but keeps the original format intact so databases don't break."
+    "hint": "You need a transformation method that encrypts the data (so it can be reversed/decrypted later) but keeps the original format intact so databases don't break.",
+    "tags": [
+      "Data & Storage"
+    ]
   },
   {
     "question": "An organization adopts Google Cloud Platform (GCP) for application hosting services and needs guidance on setting up password requirements\nfor their Cloud\nIdentity account. The organization has a password policy requirement that corporate employee passwords must have a minimum number of\ncharacters.\nWhich Cloud Identity password guidelines can the organization use to inform their new requirements?",
@@ -423,7 +493,10 @@
       "C": "https://support.google.com/a/answer/33386?hl=en",
       "D": "https://support.google.com/a/answer/33386?hl=en"
     },
-    "hint": "Think about standard industry baselines for minimum password length that balance usability and brute-force resistance. Google enforces this as the minimum floor in Cloud Identity."
+    "hint": "Think about standard industry baselines for minimum password length that balance usability and brute-force resistance. Google enforces this as the minimum floor in Cloud Identity.",
+    "tags": [
+      "IAM"
+    ]
   },
   {
     "question": "You need to follow Google-recommended practices to leverage envelope encryption and encrypt data at the application layer.\nWhat should you do?",
@@ -446,7 +519,10 @@
       "C": "https://cloud.google.com/kms/docs/envelope-encryption",
       "D": "https://cloud.google.com/kms/docs/envelope-encryption"
     },
-    "hint": "In envelope encryption, the service (KMS) holds the master key (KEK), while you use another key locally (DEK) to encrypt the actual data. How does KMS interact with your local key?"
+    "hint": "In envelope encryption, the service (KMS) holds the master key (KEK), while you use another key locally (DEK) to encrypt the actual data. How does KMS interact with your local key?",
+    "tags": [
+      "Data & Storage"
+    ]
   },
   {
     "question": "How should a customer reliably deliver Stackdriver logs from GCP to their on-premises SIEM system?",
@@ -469,7 +545,10 @@
       "C": "https://cloud.google.com/architecture/exporting-stackdriver-logging-for-security-and-access-analytics",
       "D": "https://cloud.google.com/architecture/exporting-stackdriver-logging-for-security-and-access-analytics"
     },
-    "hint": "You need to ingest logs into a third-party, potentially on-premise SIEM in real-time. Which GCP messaging service acts as a perfect buffer and delivery mechanism for streaming data?"
+    "hint": "You need to ingest logs into a third-party, potentially on-premise SIEM in real-time. Which GCP messaging service acts as a perfect buffer and delivery mechanism for streaming data?",
+    "tags": [
+      "Data & Storage"
+    ]
   },
   {
     "question": "In order to meet PCI DSS requirements, a customer wants to ensure that all outbound traffic is authorized.\nWhich two cloud offerings meet this requirement without additional compensating controls? (Choose two.)",
@@ -495,7 +574,12 @@
       "D": "https://cloud.google.com/kubernetes-engine/docs/concepts/network-policy",
       "E": "https://cloud.google.com/storage/docs/access-control"
     },
-    "hint": "Which computing environment provides native, granular control over egress network traffic using standard VPC Firewall rules?"
+    "hint": "Which computing environment provides native, granular control over egress network traffic using standard VPC Firewall rules?",
+    "tags": [
+      "Networking",
+      "Data & Storage",
+      "Compute"
+    ]
   },
   {
     "question": "A website design company recently migrated all customer sites to App Engine. Some sites are still in progress and should only be visible to\ncustomers and company employees from any location.\nWhich solution will restrict access to the in-progress sites?",
@@ -518,7 +602,12 @@
       "C": "https://cloud.google.com/iap/docs/concepts-overview",
       "D": "https://cloud.google.com/network-connectivity/docs/vpn/concepts/overview"
     },
-    "hint": "You need an authentication layer that sits in front of the web application and verifies user identity against Google Groups, regardless of where the user connects from."
+    "hint": "You need an authentication layer that sits in front of the web application and verifies user identity against Google Groups, regardless of where the user connects from.",
+    "tags": [
+      "IAM",
+      "Networking",
+      "Compute"
+    ]
   },
   {
     "question": "When working with agents in the support center via online chat, your organization's customers often share pictures of their documents with\npersonally identifiable information (PII). Your leadership team is concerned that this PII is being stored as part of the regular chat logs, which are\nreviewed by internal or external analysts for customer service trends.\nYou want to resolve this concern while still maintaining data utility. What should you do?",
@@ -541,7 +630,10 @@
       "C": "https://cloud.google.com/dlp/docs/inspecting-images",
       "D": "https://cloud.google.com/dlp/docs/transformations-reference"
     },
-    "hint": "You need a service capable of analyzing images (OCR) to proactively find and obscure sensitive data before it's saved."
+    "hint": "You need a service capable of analyzing images (OCR) to proactively find and obscure sensitive data before it's saved.",
+    "tags": [
+      "Data & Storage"
+    ]
   },
   {
     "question": "A company's application is deployed with a user-managed Service Account key. You want to use Google-recommended practices to rotate the key.\nWhat should you do?",
@@ -564,7 +656,10 @@
       "C": "https://cloud.google.com/iam/docs/creating-managing-service-account-keys",
       "D": "https://cloud.google.com/iam/docs/best-practices-for-managing-service-account-keys"
     },
-    "hint": "Security best practices dictate that key rotation should involve creating a new key, switching the application over, and *then* deleting the old key."
+    "hint": "Security best practices dictate that key rotation should involve creating a new key, switching the application over, and *then* deleting the old key.",
+    "tags": [
+      "IAM"
+    ]
   },
   {
     "question": "Your team needs to configure their Google Cloud Platform (GCP) environment so they can centralize the control over networking resources like\nfirewall rules, subnets, and routes. They also have an on-premises environment where resources need access back to the GCP resources through a\nprivate VPN connection.\nThe networking resources will need to be controlled by the network security team.\nWhich type of networking design should your team use to meet these requirements?",
@@ -587,6 +682,11 @@
       "C": "https://cloud.google.com/vpc/docs/vpc-peering",
       "D": "https://cloud.google.com/network-connectivity/docs/vpn/concepts/overview"
     },
-    "hint": "Which networking construct allows a central 'host' project to manage subnets and firewalls, while allowing 'service' projects to securely attach VMs to those subnets?"
+    "hint": "Which networking construct allows a central 'host' project to manage subnets and firewalls, while allowing 'service' projects to securely attach VMs to those subnets?",
+    "tags": [
+      "IAM",
+      "Networking",
+      "Compute"
+    ]
   }
 ]

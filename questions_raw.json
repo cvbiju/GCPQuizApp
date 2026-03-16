@@ -1,0 +1,257 @@
+[
+  {
+    "question": "Your team needs to make sure that a Compute Engine instance does not have access to the internet or to any Google APIs or services.\nWhich two settings must remain disabled to meet these requirements? (Choose two.)",
+    "options": {
+      "A": "Public IP",
+      "B": "IP Forwarding",
+      "C": "Private Google Access",
+      "D": "Static routes",
+      "E": "IAM Network User Role"
+    },
+    "answer": "AC"
+  },
+  {
+    "question": "Which two implied firewall rules are defined on a VPC network? (Choose two.)",
+    "options": {
+      "A": "A rule that allows all outbound connections",
+      "B": "A rule that denies all inbound connections",
+      "C": "A rule that blocks all inbound port 25 connections",
+      "D": "A rule that blocks all outbound connections",
+      "E": "A rule that allows all inbound port 80 connections"
+    },
+    "answer": "AB"
+  },
+  {
+    "question": "A customer needs an alternative to storing their plain text secrets in their source-code management (SCM) system.\nHow should the customer achieve this using Google Cloud Platform?",
+    "options": {
+      "A": "Use Cloud Source Repositories, and store secrets in Cloud SQL.",
+      "B": "Encrypt the secrets with a Customer-Managed Encryption Key (CMEK), and store them in Cloud Storage.",
+      "C": "Run the Cloud Data Loss Prevention API to scan the secrets, and store them in Cloud SQL.",
+      "D": "Deploy the SCM to a Compute Engine VM with local SSDs, and enable preemptible VMs."
+    },
+    "answer": "B"
+  },
+  {
+    "question": "Your team wants to centrally manage GCP IAM permissions from their on-premises Active Directory Service. Your team wants to manage\npermissions by AD group membership.\nWhat should your team do to meet these requirements?",
+    "options": {
+      "A": "Set up Cloud Directory Sync to sync groups, and set IAM permissions on the groups.",
+      "B": "Set up SAML 2.0 Single Sign-On (SSO), and assign IAM permissions to the groups.",
+      "C": "Use the Cloud Identity and Access Management API to create groups and IAM permissions from Active Directory.",
+      "D": "Use the Admin SDK to create groups and assign IAM permissions from Active Directory."
+    },
+    "answer": "B"
+  },
+  {
+    "question": "When creating a secure container image, which two items should you incorporate into the build if possible? (Choose two.)",
+    "options": {
+      "A": "Ensure that the app does not run as PID 1.",
+      "B": "Package a single app as a container.",
+      "C": "Remove any unnecessary tools not needed by the app.",
+      "D": "Use public container images as a base image for the app.",
+      "E": "Use many container image layers to hide sensitive information."
+    },
+    "answer": "BC"
+  },
+  {
+    "question": "A customer needs to launch a 3-tier internal web application on Google Cloud Platform (GCP). The customer's internal compliance requirements\ndictate that end- user access may only be allowed if the traffic seems to originate from a specific known good CIDR. The customer accepts the\nrisk that their application will only have SYN flood DDoS protection. They want to use GCP's native SYN flood protection.\nWhich product should be used to meet these requirements?",
+    "options": {
+      "A": "Cloud Armor",
+      "B": "VPC Firewall Rules",
+      "C": "Cloud Identity and Access Management",
+      "D": "Cloud CDN"
+    },
+    "answer": "A"
+  },
+  {
+    "question": "A company is running workloads in a dedicated server room. They must only be accessed from within the private company network. You need to\nconnect to these workloads from Compute Engine instances within a Google Cloud Platform project.\nWhich two approaches can you take to meet the requirements? (Choose two.)",
+    "options": {
+      "A": "Configure the project with Cloud VPN.",
+      "B": "Configure the project with Shared VPC.",
+      "C": "Configure the project with Cloud Interconnect.",
+      "D": "Configure the project with VPC peering.",
+      "E": "Configure all Compute Engine instances with Private Access."
+    },
+    "answer": "AC"
+  },
+  {
+    "question": "A customer implements Cloud Identity-Aware Proxy for their ERP system hosted on Compute Engine. Their security team wants to add a security\nlayer so that the\nERP systems only accept traffic from Cloud Identity-Aware Proxy.\nWhat should the customer do to meet these requirements?",
+    "options": {
+      "A": "Make sure that the ERP system can validate the JWT assertion in the HTTP requests.",
+      "B": "Make sure that the ERP system can validate the identity headers in the HTTP requests.",
+      "C": "Make sure that the ERP system can validate the x-forwarded-for headers in the HTTP requests.",
+      "D": "Make sure that the ERP system can validate the user's unique identifier headers in the HTTP requests."
+    },
+    "answer": "A"
+  },
+  {
+    "question": "A company has been running their application on Compute Engine. A bug in the application allowed a malicious user to repeatedly execute a script\nthat results in the Compute Engine instance crashing. Although the bug has been fixed, you want to get notified in case this hack re-occurs.\nWhat should you do?",
+    "options": {
+      "A": "Correct",
+      "B": "Create an Alerting Policy in Stackdriver using the CPU usage metric. Set the threshold to 80% to be notified when the CPU usage goes\nabove this 80%.",
+      "C": "Log every execution of the script to Stackdriver Logging. Create a User-defined metric in Stackdriver Logging on the logs, and create a\nStackdriver Dashboard displaying the metric.",
+      "D": "Log every execution of the script to Stackdriver Logging. Configure BigQuery as a log sink, and create a BigQuery scheduled query to count\nthe number of executions in a specific timeframe."
+    },
+    "answer": "C"
+  },
+  {
+    "question": "Your team needs to obtain a unified log view of all development cloud projects in your SIEM. The development projects are under the NONPROD\norganization folder with the test and pre-production projects. The development projects share the ABC-BILLING billing account with the rest of the\norganization.\nWhich logging export strategy should you use to meet the requirements?",
+    "options": {
+      "A": "1. Export logs to a Cloud Pub/Sub topic with folders/NONPROD parent and includeChildren property set to True in a dedicated SIEM project.\n2. Subscribe SIEM to the topic.",
+      "B": "1. Create a Cloud Storage sink with billingAccounts/ABC-BILLING parent and includeChildren property set to False in a dedicated SIEM\nproject. 2. Process Cloud Storage objects in SIEM.",
+      "C": "1. Export logs in each dev project to a Cloud Pub/Sub topic in a dedicated SIEM project. 2. Subscribe SIEM to the topic.",
+      "D": "1. Create a Cloud Storage sink with a publicly shared Cloud Storage bucket in each project. 2. Process Cloud Storage objects in SIEM."
+    },
+    "answer": "B"
+  },
+  {
+    "question": "A customer needs to prevent attackers from hijacking their domain/IP and redirecting users to a malicious site through a man-in-the-middle\nattack.\nWhich solution should this customer use?",
+    "options": {
+      "A": "VPC Flow Logs",
+      "B": "Cloud Armor",
+      "C": "Attackers can hijack this process of domain/IP lookup and redirect users to a malicious site through DNS hijacking and man-in-the-middle\nattacks. DNSSEC helps mitigate the risk of such attacks by cryptographically signing DNS records. As a result, it prevents attackers from issuing fake\nDNS responses that may misdirect browsers to nefarious websites.\nupvoted 4 times\n\uf147\uf007 sc_cloud_learn 1\u00a0year, 7\u00a0months ago",
+      "D": "Cloud Identity-Aware Proxy"
+    },
+    "answer": "C"
+  },
+  {
+    "question": "A customer deploys an application to App Engine and needs to check for Open Web Application Security Project (OWASP) vulnerabilities.\nWhich service should be used to accomplish this?",
+    "options": {
+      "A": "Cloud Armor",
+      "B": "Google Cloud Audit Logs",
+      "C": "Web Security Scanner",
+      "D": "Anomaly Detection"
+    },
+    "answer": "C"
+  },
+  {
+    "question": "A customer's data science group wants to use Google Cloud Platform (GCP) for their analytics workloads. Company policy dictates that all data\nmust be company-owned and all user authentications must go through their own Security Assertion Markup Language (SAML) 2.0 Identity\nProvider (IdP). The\nInfrastructure Operations Systems Engineer was trying to set up Cloud Identity for the customer and realized that their domain was already being\nused by G Suite.\nHow should you best advise the Systems Engineer to proceed with the least disruption?",
+    "options": {
+      "A": "Contact Google Support and initiate the Domain Contestation Process to use the domain name in your new Cloud Identity domain.",
+      "B": "Register a new domain name, and use that for the new Cloud Identity domain.",
+      "C": "Ask Google to provision the data science manager's account as a Super Administrator in the existing domain.",
+      "D": "Ask customer's management to discover any other uses of Google managed services, and work with the existing Super Administrator."
+    },
+    "answer": "C"
+  },
+  {
+    "question": "A business unit at a multinational corporation signs up for GCP and starts moving workloads into GCP. The business unit creates a Cloud Identity\ndomain with an organizational resource that has hundreds of projects.\nYour team becomes aware of this and wants to take over managing permissions and auditing the domain resources.\nWhich type of access should your team grant to meet this requirement?",
+    "options": {
+      "A": "Organization Administrator",
+      "B": "Security Reviewer",
+      "C": "Organization Role Administrator",
+      "D": "Organization Policy Administrator"
+    },
+    "answer": "C"
+  },
+  {
+    "question": "An application running on a Compute Engine instance needs to read data from a Cloud Storage bucket. Your team does not allow Cloud Storage\nbuckets to be globally readable and wants to ensure the principle of least privilege.\nWhich option meets the requirement of your team?",
+    "options": {
+      "A": "Create a Cloud Storage ACL that allows read-only access from the Compute Engine instance's IP address and allows the application to read\nfrom the bucket without credentials.",
+      "B": "Use a service account with read-only access to the Cloud Storage bucket, and store the credentials to the service account in the config of\nthe application on the Compute Engine instance.",
+      "C": "Use a service account with read-only access to the Cloud Storage bucket to retrieve the credentials from the instance metadata.",
+      "D": "Encrypt the data in the Cloud Storage bucket using Cloud KMS, and allow the application to decrypt the data with the KMS key."
+    },
+    "answer": "C"
+  },
+  {
+    "question": "An organization's typical network and security review consists of analyzing application transit routes, request handling, and firewall rules. They\nwant to enable their developer teams to deploy new applications without the overhead of this full review.\nHow should you advise this organization?",
+    "options": {
+      "A": "Use Forseti with Firewall filters to catch any unwanted configurations in production.",
+      "B": "Mandate use of infrastructure as code and provide static analysis in the CI/CD pipelines to enforce policies.",
+      "C": "Route all VPC traffic through customer-managed routers to detect malicious patterns in production.",
+      "D": "All production applications will run on-premises. Allow developers free rein in GCP as their dev and QA platforms."
+    },
+    "answer": "B"
+  },
+  {
+    "question": "An employer wants to track how bonus compensations have changed over time to identify employee outliers and correct earning disparities. This\ntask must be performed without exposing the sensitive compensation data for any individual and must be reversible to identify the outlier.\nWhich Cloud Data Loss Prevention API technique should you use to accomplish this?",
+    "options": {
+      "A": "Generalization",
+      "B": "Redaction",
+      "C": "CryptoHashConfig",
+      "D": "CryptoReplaceFfxFpeConfig"
+    },
+    "answer": "B"
+  },
+  {
+    "question": "An organization adopts Google Cloud Platform (GCP) for application hosting services and needs guidance on setting up password requirements\nfor their Cloud\nIdentity account. The organization has a password policy requirement that corporate employee passwords must have a minimum number of\ncharacters.\nWhich Cloud Identity password guidelines can the organization use to inform their new requirements?",
+    "options": {
+      "A": "Set the minimum length for passwords to be 8 characters.",
+      "B": "Set the minimum length for passwords to be 10 characters.",
+      "C": "Set the minimum length for passwords to be 12 characters.",
+      "D": "Set the minimum length for passwords to be 6 characters."
+    },
+    "answer": "A"
+  },
+  {
+    "question": "You need to follow Google-recommended practices to leverage envelope encryption and encrypt data at the application layer.\nWhat should you do?",
+    "options": {
+      "A": "Generate a data encryption key (DEK) locally to encrypt the data, and generate a new key encryption key (KEK) in Cloud KMS to encrypt the\nDEK. Store both the encrypted data and the encrypted DEK.",
+      "B": "Generate a data encryption key (DEK) locally to encrypt the data, and generate a new key encryption key (KEK) in Cloud KMS to encrypt the\nDEK. Store both the encrypted data and the KEK.",
+      "C": "Generate a new data encryption key (DEK) in Cloud KMS to encrypt the data, and generate a key encryption key (KEK) locally to encrypt the\nkey. Store both the encrypted data and the encrypted DEK.",
+      "D": "Generate a new data encryption key (DEK) in Cloud KMS to encrypt the data, and generate a key encryption key (KEK) locally to encrypt the\nkey. Store both the encrypted data and the KEK."
+    },
+    "answer": "A"
+  },
+  {
+    "question": "How should a customer reliably deliver Stackdriver logs from GCP to their on-premises SIEM system?",
+    "options": {
+      "A": "Send all logs to the SIEM system via an existing protocol such as syslog.",
+      "B": "Configure every project to export all their logs to a common BigQuery DataSet, which will be queried by the SIEM system.",
+      "C": "Configure Organizational Log Sinks to export logs to a Cloud Pub/Sub Topic, which will be sent to the SIEM via Dataflow.",
+      "D": "Build a connector for the SIEM to query for all logs in real time from the GCP RESTful JSON APIs."
+    },
+    "answer": "C"
+  },
+  {
+    "question": "In order to meet PCI DSS requirements, a customer wants to ensure that all outbound traffic is authorized.\nWhich two cloud offerings meet this requirement without additional compensating controls? (Choose two.)",
+    "options": {
+      "A": "App Engine",
+      "B": "Cloud Functions",
+      "C": "Compute Engine",
+      "D": "Google Kubernetes Engine",
+      "E": "Cloud Storage"
+    },
+    "answer": "AC"
+  },
+  {
+    "question": "A website design company recently migrated all customer sites to App Engine. Some sites are still in progress and should only be visible to\ncustomers and company employees from any location.\nWhich solution will restrict access to the in-progress sites?",
+    "options": {
+      "A": "Upload an .htaccess file containing the customer and employee user accounts to App Engine.",
+      "B": "Create an App Engine firewall rule that allows access from the customer and employee networks and denies all other traffic.",
+      "C": "Enable Cloud Identity-Aware Proxy (IAP), and allow access to a Google Group that contains the customer and employee user accounts.",
+      "D": "Use Cloud VPN to create a VPN connection between the relevant on-premises networks and the company's GCP Virtual Private Cloud (VPC)\nnetwork."
+    },
+    "answer": "C"
+  },
+  {
+    "question": "When working with agents in the support center via online chat, your organization's customers often share pictures of their documents with\npersonally identifiable information (PII). Your leadership team is concerned that this PII is being stored as part of the regular chat logs, which are\nreviewed by internal or external analysts for customer service trends.\nYou want to resolve this concern while still maintaining data utility. What should you do?",
+    "options": {
+      "A": "Use Cloud Key Management Service to encrypt PII shared by customers before storing it for analysis.",
+      "B": "Use Object Lifecycle Management to make sure that all chat records containing PII are discarded and not saved for analysis.",
+      "C": "Use the image inspection and redaction actions of the DLP API to redact PII from the images before storing them for analysis.",
+      "D": "Use the generalization and bucketing actions of the DLP API solution to redact PII from the texts before storing them for analysis."
+    },
+    "answer": "C"
+  },
+  {
+    "question": "A company's application is deployed with a user-managed Service Account key. You want to use Google-recommended practices to rotate the key.\nWhat should you do?",
+    "options": {
+      "A": "Open Cloud Shell and run gcloud iam service-accounts enable-auto-rotate --iam-account=IAM_ACCOUNT.",
+      "B": "Open Cloud Shell and run gcloud iam service-accounts keys rotate --iam-account=IAM_ACCOUNT --key=NEW_KEY.",
+      "C": "Create a new key, and use the new key in the application. Delete the old key from the Service Account.",
+      "D": "Create a new key, and use the new key in the application. Store the old key on the system as a backup key."
+    },
+    "answer": "C"
+  },
+  {
+    "question": "Your team needs to configure their Google Cloud Platform (GCP) environment so they can centralize the control over networking resources like\nfirewall rules, subnets, and routes. They also have an on-premises environment where resources need access back to the GCP resources through a\nprivate VPN connection.\nThe networking resources will need to be controlled by the network security team.\nWhich type of networking design should your team use to meet these requirements?",
+    "options": {
+      "A": "Shared VPC Network with a host project and service projects",
+      "B": "Grant Compute Admin role to the networking team for each engineering project",
+      "C": "VPC peering between all engineering projects using a hub and spoke model",
+      "D": "Cloud VPN Gateway between all engineering projects using a hub and spoke model"
+    },
+    "answer": "A"
+  }
+]

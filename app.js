@@ -1,14 +1,41 @@
+let originalQuestions = [];
 let questions = [];
 let currentQuestionIndex = 0;
 let userScore = 0;
 let totalAnswered = 0;
 let selectedOptions = new Set();
 let isAnswerSubmitted = false;
+let currentRange = { start: 1, end: 25 };
+
+let selectedTags = new Set();
+let timerInterval = null;
+let secondsRemaining = 0;
+let isExamMode = false;
 
 const DOMElements = {
     loading: document.getElementById('loading'),
     quiz: document.getElementById('quiz'),
     summary: document.getElementById('summary'),
+    setupView: document.getElementById('setup-view'),
+    historyView: document.getElementById('history-view'),
+    resumeCont: document.getElementById('resumeCont'),
+    resumeDetails: document.getElementById('resumeDetails'),
+    resumeBtn: document.getElementById('resumeBtn'),
+    weaknessesCont: document.getElementById('weaknessesCont'),
+    retakeMissedBtn: document.getElementById('retakeMissedBtn'),
+    missedCount: document.getElementById('missedCount'),
+    tagFilters: document.getElementById('tagFilters'),
+    examModeToggle: document.getElementById('examModeToggle'),
+    examTimer: document.getElementById('examTimer'),
+    timerText: document.getElementById('timerText'),
+    rangeStart: document.getElementById('rangeStart'),
+    rangeEnd: document.getElementById('rangeEnd'),
+    startNewBtn: document.getElementById('startNewBtn'),
+    viewHistoryBtn: document.getElementById('viewHistoryBtn'),
+    backFromHistoryBtn: document.getElementById('backFromHistoryBtn'),
+    historyList: document.getElementById('historyList'),
+    quizNotes: document.getElementById('quizNotes'),
+    saveHistoryBtn: document.getElementById('saveHistoryBtn'),
     questionText: document.getElementById('questionText'),
     optionsCont: document.getElementById('optionsCont'),
     submitBtn: document.getElementById('submitBtn'),
@@ -50,19 +77,27 @@ async function init() {
         
         const rawData = await response.json();
         // Keep questions that actually have explanations (up to 25)
-        questions = rawData.filter(q => q.explanations);
+        originalQuestions = rawData.filter(q => q.explanations);
+        originalQuestions.forEach((q, idx) => q.originalIndex = idx + 1);
         
-        if (questions.length === 0) {
+        if (originalQuestions.length === 0) {
             throw new Error('No valid questions found');
         }
+
+        DOMElements.rangeEnd.max = originalQuestions.length;
+        DOMElements.rangeEnd.value = originalQuestions.length;
+
+        // Extract unique tags
+        const allTags = new Set();
+        originalQuestions.forEach(q => q.tags.forEach(t => allTags.add(t)));
+        renderTagFilters(Array.from(allTags).sort());
 
         // Add small delay for UI smoothness
         setTimeout(() => {
             DOMElements.loading.classList.add('hidden');
-            DOMElements.quiz.classList.remove('hidden');
-            DOMElements.scoreboard.classList.remove('hidden');
-            updateSidebarScore();
-            loadQuestion(0);
+            checkSavedSession();
+            checkWeaknesses();
+            DOMElements.setupView.classList.remove('hidden');
         }, 800);
         
     } catch (err) {
@@ -71,19 +106,311 @@ async function init() {
     }
 }
 
+function checkSavedSession() {
+    const saved = localStorage.getItem('quiz_active_state');
+    if (saved) {
+        try {
+            const state = JSON.parse(saved);
+            DOMElements.resumeCont.classList.remove('hidden');
+            DOMElements.resumeDetails.textContent = `Range: ${state.currentRange.start}-${state.currentRange.end} | Progress: Question ${state.currentQuestionIndex + 1} of ${state.questionsLength} | Score: ${state.userScore}/${state.totalAnswered}`;
+        } catch(e) {
+            localStorage.removeItem('quiz_active_state');
+        }
+    } else {
+        DOMElements.resumeCont.classList.add('hidden');
+    }
+}
+
+function startNewQuiz() {
+    let start = parseInt(DOMElements.rangeStart.value) || 1;
+    let end = parseInt(DOMElements.rangeEnd.value) || originalQuestions.length;
+    
+    if (start < 1) start = 1;
+    if (end > originalQuestions.length) end = originalQuestions.length;
+    if (start > end) {
+        alert("Start question cannot be greater than end question.");
+        return;
+    }
+
+    // Apply Tag Filters if any are selected
+    let baseQuestions = originalQuestions;
+    if (selectedTags.size > 0) {
+        baseQuestions = originalQuestions.filter(q => q.tags.some(t => selectedTags.has(t)));
+    }
+    
+    // Bounds check against filtered set
+    if (end > baseQuestions.length) end = baseQuestions.length;
+    if (start > end || baseQuestions.length === 0) {
+        alert("No questions found for this range/filter combination.");
+        return;
+    }
+
+    currentRange = { start, end };
+    questions = baseQuestions.slice(start - 1, end);
+    isExamMode = DOMElements.examModeToggle.checked;
+    
+    currentQuestionIndex = 0;
+    userScore = 0;
+    totalAnswered = 0;
+    selectedOptions.clear();
+    isAnswerSubmitted = false;
+
+    saveActiveState();
+    launchQuiz();
+}
+
+function startWeaknessesQuiz() {
+    const weaknesses = JSON.parse(localStorage.getItem('quiz_weaknesses') || '[]');
+    if (weaknesses.length === 0) return;
+    
+    questions = originalQuestions.filter(q => weaknesses.includes(q.originalIndex));
+    currentRange = { start: 'Weaknesses', end: 'Retake' };
+    isExamMode = DOMElements.examModeToggle.checked;
+    
+    currentQuestionIndex = 0;
+    userScore = 0;
+    totalAnswered = 0;
+    selectedOptions.clear();
+    isAnswerSubmitted = false;
+
+    saveActiveState();
+    launchQuiz();
+}
+
+function handleTagToggle(tag, isChecked) {
+    if (isChecked) {
+        selectedTags.add(tag);
+    } else {
+        selectedTags.delete(tag);
+    }
+}
+
+function renderTagFilters(tagsToRender) {
+    DOMElements.tagFilters.innerHTML = '';
+    tagsToRender.forEach(tag => {
+        const lbl = document.createElement('label');
+        lbl.className = 'tag-lbl';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = tag;
+        cb.addEventListener('change', (e) => handleTagToggle(tag, e.target.checked));
+        
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill';
+        pill.textContent = tag;
+        
+        lbl.appendChild(cb);
+        lbl.appendChild(pill);
+        DOMElements.tagFilters.appendChild(lbl);
+    });
+}
+
+function checkWeaknesses() {
+    const weaknesses = JSON.parse(localStorage.getItem('quiz_weaknesses') || '[]');
+    if (weaknesses.length > 0) {
+        DOMElements.weaknessesCont.classList.remove('hidden');
+        DOMElements.missedCount.textContent = weaknesses.length;
+    } else {
+        DOMElements.weaknessesCont.classList.add('hidden');
+    }
+}
+
+function updateWeaknesses(originalIndex, wasCorrect) {
+    let weaknesses = JSON.parse(localStorage.getItem('quiz_weaknesses') || '[]');
+    if (!wasCorrect && !weaknesses.includes(originalIndex)) {
+        weaknesses.push(originalIndex);
+    } else if (wasCorrect && weaknesses.includes(originalIndex)) {
+        weaknesses = weaknesses.filter(id => id !== originalIndex);
+    }
+    localStorage.setItem('quiz_weaknesses', JSON.stringify(weaknesses));
+}
+
+function resumeQuiz() {
+    const saved = localStorage.getItem('quiz_active_state');
+    if (saved) {
+        try {
+            const state = JSON.parse(saved);
+            currentRange = state.currentRange;
+            isExamMode = state.isExamMode || false;
+            
+            // Reconstruct the exact question array
+            let baseArray = originalQuestions;
+            if (state.resumeType === 'weaknesses') {
+                 const weaknesses = JSON.parse(localStorage.getItem('quiz_weaknesses') || '[]');
+                 baseArray = originalQuestions.filter(q => weaknesses.includes(q.originalIndex));
+                 questions = baseArray;
+            } else {
+                 if (state.selectedTags && state.selectedTags.length > 0) {
+                     baseArray = originalQuestions.filter(q => q.tags.some(t => state.selectedTags.includes(t)));
+                 }
+                 questions = baseArray.slice(currentRange.start - 1, currentRange.end);
+            }
+
+            currentQuestionIndex = state.currentQuestionIndex;
+            userScore = state.userScore;
+            totalAnswered = state.totalAnswered;
+            
+            if (isExamMode && state.secondsRemaining) {
+                secondsRemaining = state.secondsRemaining;
+            }
+
+            
+            if (currentQuestionIndex >= questions.length) {
+                localStorage.removeItem('quiz_active_state');
+                startNewQuiz();
+                return;
+            }
+            
+            launchQuiz();
+        } catch(e) {
+            startNewQuiz();
+        }
+    }
+}
+
+function launchQuiz() {
+    DOMElements.setupView.classList.add('hidden');
+    DOMElements.historyView.classList.add('hidden');
+    DOMElements.summary.classList.add('hidden');
+    DOMElements.quiz.classList.remove('hidden');
+    DOMElements.scoreboard.classList.remove('hidden');
+    
+    if (isExamMode) {
+        DOMElements.examTimer.classList.remove('hidden');
+        if (secondsRemaining <= 0) {
+            // ~2.4 mins per question = ~144 seconds
+            secondsRemaining = questions.length * 144;
+        }
+        startTimer();
+    } else {
+        DOMElements.examTimer.classList.add('hidden');
+    }
+
+    updateSidebarScore();
+    loadQuestion(currentQuestionIndex);
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+        secondsRemaining--;
+        updateTimerDisplay();
+        
+        if (secondsRemaining <= 60) {
+            DOMElements.examTimer.style.borderColor = 'red';
+            DOMElements.examTimer.style.color = 'red';
+        }
+        
+        if (secondsRemaining % 5 === 0) saveActiveState(); // periodically save time
+
+        if (secondsRemaining <= 0) {
+            clearInterval(timerInterval);
+            alert("⏰ Time's up! The exam is automatically submitting.");
+            showSummary();
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const m = Math.floor(secondsRemaining / 60);
+    const s = secondsRemaining % 60;
+    DOMElements.timerText.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+function saveActiveState() {
+    if (currentRange.start === 'Weaknesses') {
+         localStorage.setItem('quiz_active_state', JSON.stringify({
+            resumeType: 'weaknesses',
+            currentRange, currentQuestionIndex, userScore, totalAnswered,
+            questionsLength: questions.length, isExamMode, secondsRemaining
+         }));
+    } else {
+         localStorage.setItem('quiz_active_state', JSON.stringify({
+            resumeType: 'range',
+            selectedTags: Array.from(selectedTags),
+            currentRange, currentQuestionIndex, userScore, totalAnswered,
+            questionsLength: questions.length, isExamMode, secondsRemaining
+        }));
+    }
+}
+
+function saveHistory() {
+    const notes = DOMElements.quizNotes.value.trim();
+    const history = JSON.parse(localStorage.getItem('quiz_progress_history') || '[]');
+    
+    const record = {
+        date: new Date().toISOString(),
+        range: `${currentRange.start}-${currentRange.end}`,
+        score: userScore,
+        total: questions.length,
+        notes: notes
+    };
+    
+    history.unshift(record);
+    localStorage.setItem('quiz_progress_history', JSON.stringify(history));
+    DOMElements.quizNotes.value = ''; // clear
+    
+    // Switch to history view
+    DOMElements.summary.classList.add('hidden');
+    DOMElements.scoreboard.classList.add('hidden');
+    showHistoryView();
+}
+
+function showHistoryView() {
+    DOMElements.setupView.classList.add('hidden');
+    DOMElements.summary.classList.add('hidden');
+    DOMElements.scoreboard.classList.add('hidden');
+    DOMElements.quiz.classList.add('hidden'); // fail safe
+    DOMElements.historyView.classList.remove('hidden');
+    
+    const history = JSON.parse(localStorage.getItem('quiz_progress_history') || '[]');
+    DOMElements.historyList.innerHTML = '';
+    
+    if (history.length === 0) {
+        DOMElements.historyList.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No history found.</p>';
+        return;
+    }
+    
+    history.forEach(item => {
+        const d = new Date(item.date);
+        const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        // Handle 0 total gracefully
+        const accuracy = item.total ? Math.round((item.score / item.total) * 100) : 0;
+        
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+            <div class="history-header">
+                <span class="history-date">${dateStr}</span>
+                <span class="history-score">${item.score}/${item.total} (${accuracy}%)</span>
+            </div>
+            <div class="history-details">
+                <strong>Range:</strong> Questions ${item.range}
+            </div>
+            ${item.notes ? `<div class="history-notes">"${item.notes}"</div>` : ''}
+        `;
+        DOMElements.historyList.appendChild(div);
+    });
+}
+
 function loadQuestion(index) {
     if (index >= questions.length) {
+        localStorage.removeItem('quiz_active_state');
         showSummary();
         return;
     }
 
-    const q = questions[index];
     currentQuestionIndex = index;
+    saveActiveState();
+    
+    const q = questions[index];
     isAnswerSubmitted = false;
     selectedOptions.clear();
 
     // Reset UI
-    DOMElements.questionText.textContent = `${index + 1}. ${q.question}`;
+    DOMElements.questionText.textContent = `${q.originalIndex}. ${q.question}`;
     DOMElements.optionsCont.innerHTML = '';
     DOMElements.explanationCont.classList.add('hidden');
     DOMElements.explanationBody.innerHTML = '';
@@ -202,6 +529,8 @@ function submitAnswer() {
     if (isCompletelyCorrect) {
         userScore++;
     }
+    
+    updateWeaknesses(q.originalIndex, isCompletelyCorrect);
 
     updateSidebarScore();
 
@@ -272,25 +601,35 @@ function updateSidebarScore() {
 }
 
 function showSummary() {
+    clearInterval(timerInterval);
     DOMElements.quiz.classList.add('hidden');
     DOMElements.summary.classList.remove('hidden');
     DOMElements.progressBar.style.width = `100%`;
     DOMElements.progressText.textContent = `Completed!`;
-    DOMElements.finalScoreText.textContent = `${userScore} / ${questions.length}`;
+    DOMElements.finalScoreText.textContent = `${userScore} / ${totalAnswered}`;
+    checkWeaknesses();
 }
 
 // Event Listeners
-DOMElements.submitBtn.addEventListener('click', submitAnswer);
-DOMElements.nextBtn.addEventListener('click', () => loadQuestion(currentQuestionIndex + 1));
+DOMElements.startNewBtn.addEventListener('click', startNewQuiz);
+DOMElements.retakeMissedBtn.addEventListener('click', startWeaknessesQuiz);
+DOMElements.resumeBtn.addEventListener('click', resumeQuiz);
+DOMElements.viewHistoryBtn.addEventListener('click', showHistoryView);
+DOMElements.backFromHistoryBtn.addEventListener('click', () => {
+    DOMElements.historyView.classList.add('hidden');
+    DOMElements.setupView.classList.remove('hidden');
+    checkSavedSession();
+});
+DOMElements.saveHistoryBtn.addEventListener('click', saveHistory);
 DOMElements.restartBtn.addEventListener('click', () => {
-    userScore = 0;
-    totalAnswered = 0;
-    updateSidebarScore();
     DOMElements.summary.classList.add('hidden');
-    DOMElements.quiz.classList.remove('hidden');
-    loadQuestion(0);
+    DOMElements.scoreboard.classList.add('hidden');
+    DOMElements.setupView.classList.remove('hidden');
+    checkSavedSession();
 });
 
+DOMElements.submitBtn.addEventListener('click', submitAnswer);
+DOMElements.nextBtn.addEventListener('click', () => loadQuestion(currentQuestionIndex + 1));
 DOMElements.hintToggleBtn.addEventListener('click', () => {
     DOMElements.hintTextCont.classList.toggle('hidden');
 });
