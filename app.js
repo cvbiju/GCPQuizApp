@@ -838,8 +838,8 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
             throw new Error("Could not extract enough text. The PDF might be scanned images instead of text.");
         }
 
-        // 2. Prompt Gemini 1.5 Flash
-        DOMElements.aiGenerationText.textContent = 'Structuring JSON via AI (Takes 10-30s)...';
+        // 2. Chunk processing to bypass 8k output token limits
+        DOMElements.aiGenerationText.textContent = 'Structuring JSON via AI (Takes 1-2 mins)...';
         
         const systemPrompt = `You are a strict data structuring AI. Your job is to extract EVERY SINGLE multiple choice question from the following text and convert them exactly into the specified JSON format.
         
@@ -865,37 +865,58 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
           "tags": ["Applicable Category Name 1"]
         }`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${chatApiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                },
-                contents: [{
-                    parts: [{ text: "Extract questions from this study guide document:\n\n" + extractedText.substring(0, 100000) }]
-                }],
-                generationConfig: {
-                    temperature: 0.1,
-                    responseMimeType: "application/json"
-                }
-            })
-        });
-
-        if (!response.ok) {
-            const errText = await response.text();
-            console.error("Gemini Details:", errText);
-            throw new Error(`API returned ${response.status}: ${errText}`);
+        const chunkSize = 100000;
+        const textChunks = [];
+        for (let i = 0; i < extractedText.length; i += chunkSize) {
+            textChunks.push(extractedText.substring(i, i + chunkSize));
         }
 
-        const data = await response.json();
-        let aiJsonStr = data.candidates[0].content.parts[0].text;
+        let questionsArr = [];
+
+        for (let i = 0; i < textChunks.length; i++) {
+            DOMElements.aiGenerationText.textContent = `Structuring JSON (Chunk ${i + 1} of ${textChunks.length})...`;
+            
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${chatApiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    contents: [{ parts: [{ text: "Extract questions from this chunk:\n\n" + textChunks[i] }] }],
+                    generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
+                })
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                // If it's the first chunk, throw completely. If it's a later chunk, just log it so we still get what built up.
+                if (i === 0) throw new Error(`API returned ${response.status}: ${errText}`);
+                else {
+                    console.error("Gemini Details:", errText);
+                    break;
+                }
+            }
+
+            const data = await response.json();
+            const aiJsonStr = data.candidates[0].content.parts[0].text;
+            
+            try {
+                const parsed = JSON.parse(aiJsonStr);
+                if (Array.isArray(parsed)) {
+                    questionsArr = questionsArr.concat(parsed);
+                }
+            } catch (e) {
+                console.error("Failed parsing chunk", i, e);
+            }
+            
+            // Artificial delay to prevent Free Tier 15 RPM rate-limiting
+            if (i < textChunks.length - 1) {
+                await new Promise(r => setTimeout(r, 2000));
+            }
+        }
         
-        // 3. Parse and Save
         DOMElements.aiGenerationText.textContent = 'Finalizing new exam...';
-        const questionsArr = JSON.parse(aiJsonStr);
         
-        if (!Array.isArray(questionsArr) || questionsArr.length === 0) {
+        if (questionsArr.length === 0) {
             throw new Error("AI failed to find valid questions in the provided text.");
         }
 
