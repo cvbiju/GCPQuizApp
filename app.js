@@ -22,6 +22,7 @@ const DOMElements = {
     libraryView: document.getElementById('library-view'),
     examGrid: document.getElementById('examGrid'),
     navCreateBtn: document.getElementById('navCreateBtn'),
+    resetAppDataBtn: document.getElementById('resetAppDataBtn'),
     createView: document.getElementById('create-view'),
     createExamName: document.getElementById('createExamName'),
     createExamFile: document.getElementById('createExamFile'),
@@ -106,29 +107,10 @@ const DOMElements = {
 // Chat State
 let chatApiKey = localStorage.getItem('gcp_quiz_gemini_key') || '';
 
-let defaultGcpExam = [];
-
 // Initialize app
 async function init() {
-    try {
-        const response = await fetch('questions.json');
-        if (!response.ok) throw new Error('Failed to load default questions');
-        
-        const rawData = await response.json();
-        // Keep questions that actually have explanations
-        defaultGcpExam = rawData.filter(q => q.explanations);
-        defaultGcpExam.forEach((q, idx) => q.originalIndex = idx + 1);
-        
-        // Add small delay for UI smoothness
-        setTimeout(() => {
-            DOMElements.loading.classList.add('hidden');
-            renderLibrary();
-        }, 800);
-        
-    } catch (err) {
-        console.error(err);
-        DOMElements.loading.innerHTML = '<p style="color:var(--accent-red)">Error loading default questions. Please ensure a local server is running.</p>';
-    }
+    DOMElements.loading.classList.add('hidden');
+    renderLibrary();
 }
 
 function renderLibrary() {
@@ -142,22 +124,21 @@ function renderLibrary() {
     DOMElements.libraryView.classList.remove('hidden');
     DOMElements.examGrid.innerHTML = '';
 
-    // Render Default Exam
-    const defaultCard = createExamCard('Google Cloud Security Engineer (Official)', defaultGcpExam.length, 'Default', () => {
-        loadExamToSetup('Google Cloud Security Engineer', defaultGcpExam);
-    });
-    DOMElements.examGrid.appendChild(defaultCard);
-
     // Render Custom Exams from LocalStorage
     const customExams = JSON.parse(localStorage.getItem('quiz_custom_exams') || '[]');
-    customExams.forEach((exam, idx) => {
-        const card = createExamCard(exam.title, exam.questions.length, 'AI Generated', () => {
-            // Re-map indices just in case
-            exam.questions.forEach((q, i) => q.originalIndex = i + 1);
-            loadExamToSetup(exam.title, exam.questions);
+    
+    if (customExams.length === 0) {
+        DOMElements.examGrid.innerHTML = '<p style="color: var(--text-secondary); grid-column: 1 / -1;">No exams found. Click "Build Custom Exam" to generate your first study guide!</p>';
+    } else {
+        customExams.forEach((exam, idx) => {
+            const card = createExamCard(exam.title, exam.questions.length, 'AI Generated', () => {
+                // Re-map indices just in case
+                exam.questions.forEach((q, i) => q.originalIndex = i + 1);
+                loadExamToSetup(exam.title, exam.questions);
+            });
+            DOMElements.examGrid.appendChild(card);
         });
-        DOMElements.examGrid.appendChild(card);
-    });
+    }
 }
 
 function createExamCard(title, count, tagText, onClick) {
@@ -1199,6 +1180,14 @@ DOMElements.reviewQuizBtn.addEventListener('click', () => {
     DOMElements.quiz.classList.remove('hidden');
     isExamMode = false; // Disable any active timers
     loadQuestion(0);
+});
+
+// App Data Management
+DOMElements.resetAppDataBtn.addEventListener('click', () => {
+    if (confirm("Are you sure you want to delete all generated exams, progress history, and AI configurations? This cannot be undone.")) {
+        localStorage.clear();
+        location.reload();
+    }
 });
 
 // --- AI Chat Logic ---
