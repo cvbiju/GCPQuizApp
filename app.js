@@ -841,13 +841,13 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
         // 2. Prompt Gemini 1.5 Flash
         DOMElements.aiGenerationText.textContent = 'Structuring JSON via AI (Takes 10-30s)...';
         
-        const systemPrompt = `You are a strict data structuring AI. Your job is to extract multiple choice questions from the following text and convert them exactly into the specified JSON format.
+        const systemPrompt = `You are a strict data structuring AI. Your job is to extract EVERY SINGLE multiple choice question from the following text and convert them exactly into the specified JSON format.
         
         REQUIREMENTS:
-        1. Find as many valid multiple choice questions in the text as possible (at least 10 if available).
+        1. Find and extract ALL valid questions. Do not stop until you reach the very end of the document.
         2. DO NOT output conversational text, markdown formatting, or HTML. 
         3. Output ONLY a raw JSON array.
-        4. Make sure 'answer' is simply the correct letter (or letters like 'AC' for multiple choice).
+        4. Make sure 'answer' is simply the correct letter (or letters like 'AC').
         
         SCHEMA STUCTURE PER QUESTION:
         {
@@ -861,7 +861,8 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
             "A": "Why A is wrong...",
             "B": "Why B is correct..."
           },
-          "hint": "A subtle clue..."
+          "hint": "A subtle clue...",
+          "tags": ["Applicable Category Name 1"]
         }`;
 
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${chatApiKey}`, {
@@ -898,10 +899,21 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
             throw new Error("AI failed to find valid questions in the provided text.");
         }
 
-        // Tag assignment (re-using Phase 4 logic on new data simply for UI compatibility)
+        // Tag assignment and counting
+        const tagCounts = {};
+
         questionsArr.forEach((q, idx) => {
             q.originalIndex = idx + 1;
-            q.tags = ["Custom Upload"]; // Default tag
+            
+            // Ensure AI provided a valid tag array
+            if (!q.tags || !Array.isArray(q.tags) || q.tags.length === 0) {
+                q.tags = ["General Knowledge"];
+            }
+
+            // Track counts for the breakdown alert
+            q.tags.forEach(tag => {
+                tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+            });
         });
 
         const customExamObj = {
@@ -914,7 +926,15 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
         existingCustoms.push(customExamObj);
         localStorage.setItem('quiz_custom_exams', JSON.stringify(existingCustoms));
 
-        alert(`Success! Generated an interactive exam with ${questionsArr.length} questions.`);
+        // Format summary alert
+        let successMsg = `Success! Generated an interactive exam with ${questionsArr.length} total questions.\n\nCategory Breakdown:\n`;
+        Object.entries(tagCounts)
+            .sort((a, b) => b[1] - a[1]) // sort by count descending
+            .forEach(([tag, count]) => {
+                successMsg += `- ${tag}: ${count}\n`;
+            });
+            
+        alert(successMsg);
         
         // Reset and return
         DOMElements.generateExamBtn.innerHTML = '<span>🪄</span> Extract & Build Exam';
