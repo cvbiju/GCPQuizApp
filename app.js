@@ -882,7 +882,9 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
         });
 
         if (!response.ok) {
-            throw new Error(`API returned ${response.status}: Please check your API key validity.`);
+            const errText = await response.text();
+            console.error("Gemini Details:", errText);
+            throw new Error(`API returned ${response.status}: ${errText}`);
         }
 
         const data = await response.json();
