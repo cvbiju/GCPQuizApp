@@ -863,14 +863,19 @@ DOMElements.quickScanBtn.addEventListener('click', async () => {
         
         REQUIREMENTS:
         1. Identify the domains/topics covered. Consolidate them into a MAXIMUM of 14 broad, high-level categories (e.g., "Networking", "IAM", "Database").
-        2. Estimate the total number of multiple choice questions present in the text.
+        2. Estimate the total number of multiple choice questions present in the text, AND estimate how many of those questions belong to each mapped topic.
         3. DO NOT output conversational text or markdown.
         4. Output ONLY a raw JSON object.
         
         SCHEMA:
         {
           "estimatedTotalQuestions": 150,
-          "topics": ["Networking", "IAM", "Compute", "Security"]
+          "topics": {
+            "Networking": 35,
+            "IAM": 40,
+            "Compute": 50,
+            "Security": 25
+          }
         }`;
 
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${chatApiKey}`, {
@@ -878,7 +883,7 @@ DOMElements.quickScanBtn.addEventListener('click', async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 systemInstruction: { parts: [{ text: systemPrompt }] },
-                contents: [{ parts: [{ text: "Scan this document and summarize topics:\n\n" + customPdfText.substring(0, 500000) }] }],
+                contents: [{ parts: [{ text: "Scan this document and summarize topics with estimated counts:\n\n" + customPdfText.substring(0, 500000) }] }],
                 generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
             })
         });
@@ -902,12 +907,13 @@ DOMElements.quickScanBtn.addEventListener('click', async () => {
         DOMElements.generateExamBtn.disabled = false;
 
         const maxQ = scanResult.estimatedTotalQuestions || 100;
-        DOMElements.scanEstimateText.textContent = `Found ~${maxQ} questions across ${scanResult.topics.length} core topics.`;
+        const topicKeys = Object.keys(scanResult.topics || {});
+        DOMElements.scanEstimateText.textContent = `Found ~${maxQ} questions across ${topicKeys.length} core topics.`;
         DOMElements.genRangeStart.max = maxQ;
         DOMElements.genRangeEnd.max = maxQ;
 
         DOMElements.scannedTopics.innerHTML = '';
-        scanResult.topics.forEach(target => {
+        Object.entries(scanResult.topics || {}).forEach(([target, count]) => {
             const lbl = document.createElement('label');
             lbl.style.display = 'flex';
             lbl.style.alignItems = 'center';
@@ -917,7 +923,7 @@ DOMElements.quickScanBtn.addEventListener('click', async () => {
             lbl.style.borderRadius = '20px';
             lbl.style.fontSize = '0.85rem';
             lbl.style.cursor = 'pointer';
-            lbl.innerHTML = `<input type="checkbox" value="${target}" class="topic-checkbox"> ${target}`;
+            lbl.innerHTML = `<input type="checkbox" value="${target}" class="topic-checkbox"> ${target} (~${count} Qs)`;
             DOMElements.scannedTopics.appendChild(lbl);
         });
 
