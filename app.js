@@ -58,6 +58,7 @@ const DOMElements = {
     missedCount: document.getElementById('missedCount'),
     tagFilters: document.getElementById('tagFilters'),
     examModeToggle: document.getElementById('examModeToggle'),
+    questionStatusBadge: document.getElementById('questionStatusBadge'),
     examTimer: document.getElementById('examTimer'),
     timerText: document.getElementById('timerText'),
     rangeStart: document.getElementById('rangeStart'),
@@ -478,6 +479,33 @@ function showHistoryView() {
     });
 }
 
+// --- Phase 7 Deterministic Hashing Logic ---
+function hashQuestion(text) {
+    let hash = 5381;
+    // Strip all non-alphanumeric to normalize the footprint
+    let str = text.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) + hash) + str.charCodeAt(i); /* hash * 33 + c */
+    }
+    return 'qhash_' + (hash >>> 0).toString(16);
+}
+
+function getQuestionHistory(hash) {
+    const analytics = JSON.parse(localStorage.getItem('quiz_global_analytics') || '{}');
+    return analytics[hash];
+}
+
+function saveQuestionHistory(hash, isCorrect) {
+    const analytics = JSON.parse(localStorage.getItem('quiz_global_analytics') || '{}');
+    if (!analytics[hash]) {
+        analytics[hash] = { seen: true, correct: 0, incorrect: 0 };
+    }
+    if (isCorrect) analytics[hash].correct += 1;
+    else analytics[hash].incorrect += 1;
+    
+    localStorage.setItem('quiz_global_analytics', JSON.stringify(analytics));
+}
+
 function loadQuestion(index) {
     if (index >= questions.length) {
         localStorage.removeItem('quiz_active_state');
@@ -494,6 +522,32 @@ function loadQuestion(index) {
 
     // Reset UI
     DOMElements.questionText.textContent = `${q.originalIndex}. ${q.question}`;
+    
+    // --- Phase 7: History Badge Analytics ---
+    const qHash = hashQuestion(q.question);
+    const qHistory = getQuestionHistory(qHash);
+    
+    DOMElements.questionStatusBadge.classList.remove('hidden');
+    if (!qHistory) {
+        DOMElements.questionStatusBadge.textContent = '✨ Brand New';
+        DOMElements.questionStatusBadge.style.backgroundColor = 'rgba(46, 160, 67, 0.2)';
+        DOMElements.questionStatusBadge.style.color = '#3fb950';
+        DOMElements.questionStatusBadge.style.borderColor = '#3fb950';
+    } else {
+        const totalAttempts = qHistory.correct + qHistory.incorrect;
+        if (qHistory.incorrect > 0 || qHistory.correct < 3) {
+            DOMElements.questionStatusBadge.textContent = `👀 Seen Before (${qHistory.correct}/${totalAttempts} Correct)`;
+            DOMElements.questionStatusBadge.style.backgroundColor = 'rgba(210, 153, 34, 0.2)';
+            DOMElements.questionStatusBadge.style.color = '#d29922';
+            DOMElements.questionStatusBadge.style.borderColor = '#d29922';
+        } else {
+            DOMElements.questionStatusBadge.textContent = `✅ Mastered (${qHistory.correct}/${totalAttempts} Correct)`;
+            DOMElements.questionStatusBadge.style.backgroundColor = 'rgba(88, 166, 255, 0.2)';
+            DOMElements.questionStatusBadge.style.color = '#58a6ff';
+            DOMElements.questionStatusBadge.style.borderColor = '#58a6ff';
+        }
+    }
+
     DOMElements.optionsCont.innerHTML = '';
     DOMElements.explanationCont.classList.add('hidden');
     DOMElements.explanationBody.innerHTML = '';
@@ -614,6 +668,9 @@ function submitAnswer() {
     }
     
     updateWeaknesses(q.originalIndex, isCompletelyCorrect);
+    
+    // Phase 7: Global Hash Analytics
+    saveQuestionHistory(hashQuestion(q.question), isCompletelyCorrect);
 
     updateSidebarScore();
 
