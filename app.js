@@ -25,6 +25,10 @@ const DOMElements = {
     createExamFile: document.getElementById('createExamFile'),
     triggerUploadBtn: document.getElementById('triggerUploadBtn'),
     uploadFileName: document.getElementById('uploadFileName'),
+    createKeyContainer: document.getElementById('createKeyContainer'),
+    createApiKeyInput: document.getElementById('createApiKeyInput'),
+    saveCreateKeyBtn: document.getElementById('saveCreateKeyBtn'),
+    createKeySuccess: document.getElementById('createKeySuccess'),
     generateExamBtn: document.getElementById('generateExamBtn'),
     cancelCreateBtn: document.getElementById('cancelCreateBtn'),
     aiGenerationStatus: document.getElementById('aiGenerationStatus'),
@@ -685,6 +689,27 @@ DOMElements.resumeBtn.addEventListener('click', resumeQuiz);
 DOMElements.navCreateBtn.addEventListener('click', () => {
     DOMElements.libraryView.classList.add('hidden');
     DOMElements.createView.classList.remove('hidden');
+    
+    // Manage inline API Key Setup
+    if (chatApiKey) {
+        DOMElements.createKeyContainer.classList.add('hidden');
+    } else {
+        DOMElements.createKeyContainer.classList.remove('hidden');
+        DOMElements.createKeySuccess.classList.add('hidden');
+        DOMElements.createApiKeyInput.value = '';
+    }
+});
+
+DOMElements.saveCreateKeyBtn.addEventListener('click', () => {
+    const key = DOMElements.createApiKeyInput.value.trim();
+    if (!key) return;
+    
+    chatApiKey = key;
+    localStorage.setItem('gcp_quiz_gemini_key', key);
+    DOMElements.createKeySuccess.classList.remove('hidden');
+    setTimeout(() => {
+        DOMElements.createKeyContainer.classList.add('hidden');
+    }, 1500);
 });
 
 DOMElements.cancelCreateBtn.addEventListener('click', () => {
