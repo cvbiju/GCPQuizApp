@@ -31,6 +31,16 @@ const DOMElements = {
     createApiKeyInput: document.getElementById('createApiKeyInput'),
     saveCreateKeyBtn: document.getElementById('saveCreateKeyBtn'),
     createKeySuccess: document.getElementById('createKeySuccess'),
+    createStep1: document.getElementById('createStep1'),
+    createStep2: document.getElementById('createStep2'),
+    scanEstimateText: document.getElementById('scanEstimateText'),
+    generationMode: document.getElementById('generationMode'),
+    topicSelectionCont: document.getElementById('topicSelectionCont'),
+    scannedTopics: document.getElementById('scannedTopics'),
+    rangeSelectionCont: document.getElementById('rangeSelectionCont'),
+    genRangeStart: document.getElementById('genRangeStart'),
+    genRangeEnd: document.getElementById('genRangeEnd'),
+    quickScanBtn: document.getElementById('quickScanBtn'),
     generateExamBtn: document.getElementById('generateExamBtn'),
     cancelCreateBtn: document.getElementById('cancelCreateBtn'),
     aiGenerationStatus: document.getElementById('aiGenerationStatus'),
@@ -731,7 +741,17 @@ DOMElements.cancelCreateBtn.addEventListener('click', () => {
     DOMElements.uploadFileName.textContent = '';
     DOMElements.createExamFile.value = '';
     DOMElements.triggerUploadBtn.textContent = 'Select PDF File';
-    DOMElements.generateExamBtn.disabled = true;
+    DOMElements.quickScanBtn.disabled = true;
+    
+    // Reset Step 2 UI
+    DOMElements.createStep1.classList.remove('hidden');
+    DOMElements.createStep2.classList.add('hidden');
+    DOMElements.generateExamBtn.classList.add('hidden');
+    DOMElements.quickScanBtn.classList.remove('hidden');
+    DOMElements.quickScanBtn.innerHTML = '<span>📄</span> Quick Scan Document';
+    DOMElements.scannedTopics.innerHTML = '';
+    DOMElements.aiGenerationStatus.classList.add('hidden');
+    customPdfText = '';
 });
 
 DOMElements.backToLibraryBtn.addEventListener('click', () => {
@@ -755,7 +775,7 @@ DOMElements.backFromHistoryBtn.addEventListener('click', () => {
     checkSavedSession();
 });
 
-// --- Phase 5 Custom Exam Creation Logic ---
+// --- Phase 6 Custom Exam Two-Step Creation Logic ---
 
 let customPdfText = '';
 
@@ -767,7 +787,7 @@ DOMElements.createExamFile.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) {
         DOMElements.uploadFileName.textContent = '';
-        DOMElements.generateExamBtn.disabled = true;
+        DOMElements.quickScanBtn.disabled = true;
         customPdfText = '';
         return;
     }
@@ -779,9 +799,7 @@ DOMElements.createExamFile.addEventListener('change', async (e) => {
     }
 
     DOMElements.uploadFileName.textContent = `Attached: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-    DOMElements.generateExamBtn.disabled = false;
-    
-    // We do not extract immediately to save UI thread locking, we wait for 'Generate' click.
+    DOMElements.quickScanBtn.disabled = false;
 });
 
 async function extractTextFromPDF(pdfDataUrl) {
@@ -807,7 +825,8 @@ async function extractTextFromPDF(pdfDataUrl) {
     }
 }
 
-DOMElements.generateExamBtn.addEventListener('click', async () => {
+// STEP 1: Quick Scan UI Logic
+DOMElements.quickScanBtn.addEventListener('click', async () => {
     const file = DOMElements.createExamFile.files[0];
     const title = DOMElements.createExamName.value.trim();
     if (!file || !title) {
@@ -816,13 +835,13 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
     }
 
     if (!chatApiKey) {
-        alert("Please configure your Gemini API Key in the Ask AI tab (bottom right) before generating custom exams.");
+        alert("Please configure your Gemini API Key in the setup box before scanning.");
         return;
     }
 
     try {
-        DOMElements.generateExamBtn.disabled = true;
-        DOMElements.generateExamBtn.innerHTML = '<span>⏳</span> Processing...';
+        DOMElements.quickScanBtn.disabled = true;
+        DOMElements.quickScanBtn.innerHTML = '<span>⏳</span> Scanning Document...';
         DOMElements.aiGenerationStatus.classList.remove('hidden');
 
         // 1. Read PDF locally
@@ -832,29 +851,143 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
             reader.readAsDataURL(file);
         });
 
-        const extractedText = await extractTextFromPDF(pdfDataUrl);
+        customPdfText = await extractTextFromPDF(pdfDataUrl);
         
-        if (extractedText.length < 50) {
+        if (customPdfText.length < 50) {
             throw new Error("Could not extract enough text. The PDF might be scanned images instead of text.");
         }
 
-        // 2. Chunk processing to bypass 8k output token limits
-        DOMElements.aiGenerationText.textContent = 'Structuring JSON via AI (Takes 1-2 mins)...';
+        DOMElements.aiGenerationText.textContent = 'Analyzing Topics via AI (10-15s)...';
         
-        const systemPrompt = `You are a strict data structuring AI. Your job is to extract EVERY SINGLE multiple choice question from the following text and convert them exactly into the specified JSON format.
+        const systemPrompt = `You are a strict data structuring AI. Your job is to perform a rapid structural scan of the provided educational document.
         
         REQUIREMENTS:
-        1. Find and extract ALL valid questions. Do not stop until you reach the very end of the document.
-        2. DO NOT output conversational text, markdown formatting, or HTML. 
-        3. Output ONLY a raw JSON array.
-        4. Make sure 'answer' is simply the correct letter (or letters like 'AC').
+        1. Identify the domains/topics covered. Consolidate them into a MAXIMUM of 14 broad, high-level categories (e.g., "Networking", "IAM", "Database").
+        2. Estimate the total number of multiple choice questions present in the text.
+        3. DO NOT output conversational text or markdown.
+        4. Output ONLY a raw JSON object.
+        
+        SCHEMA:
+        {
+          "estimatedTotalQuestions": 150,
+          "topics": ["Networking", "IAM", "Compute", "Security"]
+        }`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${chatApiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                contents: [{ parts: [{ text: "Scan this document and summarize topics:\n\n" + customPdfText.substring(0, 500000) }] }],
+                generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
+            })
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`API returned ${response.status}: ${errText}`);
+        }
+
+        const data = await response.json();
+        const aiJsonStr = data.candidates[0].content.parts[0].text;
+        const scanResult = JSON.parse(aiJsonStr);
+        
+        // Render Step 2
+        DOMElements.aiGenerationStatus.classList.add('hidden');
+        DOMElements.createStep1.classList.add('hidden');
+        DOMElements.quickScanBtn.classList.add('hidden');
+        
+        DOMElements.createStep2.classList.remove('hidden');
+        DOMElements.generateExamBtn.classList.remove('hidden');
+        DOMElements.generateExamBtn.disabled = false;
+
+        const maxQ = scanResult.estimatedTotalQuestions || 100;
+        DOMElements.scanEstimateText.textContent = `Found ~${maxQ} questions across ${scanResult.topics.length} core topics.`;
+        DOMElements.genRangeStart.max = maxQ;
+        DOMElements.genRangeEnd.max = maxQ;
+
+        DOMElements.scannedTopics.innerHTML = '';
+        scanResult.topics.forEach(target => {
+            const lbl = document.createElement('label');
+            lbl.style.display = 'flex';
+            lbl.style.alignItems = 'center';
+            lbl.style.gap = '0.5rem';
+            lbl.style.background = 'rgba(255, 255, 255, 0.1)';
+            lbl.style.padding = '0.4rem 0.8rem';
+            lbl.style.borderRadius = '20px';
+            lbl.style.fontSize = '0.85rem';
+            lbl.style.cursor = 'pointer';
+            lbl.innerHTML = `<input type="checkbox" value="${target}" class="topic-checkbox"> ${target}`;
+            DOMElements.scannedTopics.appendChild(lbl);
+        });
+
+    } catch (err) {
+        console.error(err);
+        alert("Scan Failed: " + err.message);
+        DOMElements.quickScanBtn.disabled = false;
+        DOMElements.quickScanBtn.innerHTML = '<span>📄</span> Quick Scan Document';
+        DOMElements.aiGenerationStatus.classList.add('hidden');
+    }
+});
+// STEP 2: Configure UI Toggles
+DOMElements.generationMode.addEventListener('change', (e) => {
+    DOMElements.topicSelectionCont.classList.add('hidden');
+    DOMElements.rangeSelectionCont.classList.add('hidden');
+    
+    if (e.target.value === 'topic') {
+        DOMElements.topicSelectionCont.classList.remove('hidden');
+    } else if (e.target.value === 'range') {
+        DOMElements.rangeSelectionCont.classList.remove('hidden');
+    }
+});
+
+// STEP 2: Targeted Extraction Generation
+DOMElements.generateExamBtn.addEventListener('click', async () => {
+    const title = DOMElements.createExamName.value.trim();
+    const mode = DOMElements.generationMode.value;
+    
+    let instructions = "Extract a RANDOM selection of 50 distinct multiple choice questions from anywhere in the document.";
+    
+    if (mode === 'topic') {
+        const checked = Array.from(document.querySelectorAll('.topic-checkbox:checked')).map(cb => cb.value);
+        if (checked.length === 0) {
+            alert("Please select at least one topic.");
+            return;
+        }
+        instructions = `Extract exactly 50 distinct multiple choice questions ONLY from the following specific topics/categories: ${checked.join(', ')}. Do not extract questions outside these topics.`;
+    } else if (mode === 'range') {
+        const start = parseInt(DOMElements.genRangeStart.value) || 1;
+        const end = parseInt(DOMElements.genRangeEnd.value) || 50;
+        if (end - start >= 50) {
+            alert("Maximum extraction limit is 50 questions per request. Please narrow your range.");
+            return;
+        }
+        instructions = `Extract exactly the specific block of multiple choice questions spanning roughly from relative question #${start} to question #${end} in the document.`;
+    }
+
+    try {
+        DOMElements.generateExamBtn.disabled = true;
+        DOMElements.generateExamBtn.innerHTML = '<span>⏳</span> Processing Selected Range...';
+        DOMElements.cancelCreateBtn.disabled = true;
+
+        DOMElements.aiGenerationText.textContent = 'Building Targeted JSON Exam via AI (10-20s)...';
+        DOMElements.aiGenerationStatus.classList.remove('hidden');
+        
+        const systemPrompt = `You are a strict data structuring AI. Your job is to extract multiple choice questions from the following educational document.
+        
+        CRITICAL INSTRUCTIONS:
+        1. DO NOT change the language, rephrase, or rewrite the questions/options. Extract the raw text exactly VERBATIM as it appears in the text.
+        2. ${instructions}
+        3. STRICT LIMIT: You must output a maximum of 50 questions. Do not exceed 50.
+        4. DO NOT output conversational text or markdown. Output ONLY a raw JSON array.
+        5. Make sure 'answer' is simply the correct letter.
         
         SCHEMA STUCTURE PER QUESTION:
         {
-          "question": "The question text...",
+          "question": "The question text verbatim...",
           "options": {
-            "A": "Option text",
-            "B": "Option text"
+            "A": "Option text verbatim",
+            "B": "Option text verbatim"
           },
           "answer": "B",
           "explanations": {
@@ -862,84 +995,46 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
             "B": "Why B is correct..."
           },
           "hint": "A subtle clue...",
-          "tags": ["Applicable Category Name 1"]
+          "tags": ["Applicable Category Name"]
         }`;
 
-        const chunkSize = 100000;
-        const textChunks = [];
-        for (let i = 0; i < extractedText.length; i += chunkSize) {
-            textChunks.push(extractedText.substring(i, i + chunkSize));
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${chatApiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                contents: [{ parts: [{ text: "Extract questions per instructions:\n\n" + customPdfText.substring(0, 500000) }] }],
+                generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
+            })
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`API returned ${response.status}: ${errText}`);
         }
 
-        let questionsArr = [];
-
-        for (let i = 0; i < textChunks.length; i++) {
-            DOMElements.aiGenerationText.textContent = `Structuring JSON (Chunk ${i + 1} of ${textChunks.length})...`;
-            
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${chatApiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                    contents: [{ parts: [{ text: "Extract questions from this chunk:\n\n" + textChunks[i] }] }],
-                    generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
-                })
-            });
-
-            if (!response.ok) {
-                const errText = await response.text();
-                // If it's the first chunk, throw completely. If it's a later chunk, just log it so we still get what built up.
-                if (i === 0) throw new Error(`API returned ${response.status}: ${errText}`);
-                else {
-                    console.error("Gemini Details:", errText);
-                    break;
-                }
-            }
-
-            const data = await response.json();
-            const aiJsonStr = data.candidates[0].content.parts[0].text;
-            
-            try {
-                const parsed = JSON.parse(aiJsonStr);
-                if (Array.isArray(parsed)) {
-                    questionsArr = questionsArr.concat(parsed);
-                }
-            } catch (e) {
-                console.error("Failed parsing chunk", i, e);
-            }
-            
-            // Artificial delay to prevent Free Tier 15 RPM rate-limiting
-            if (i < textChunks.length - 1) {
-                await new Promise(r => setTimeout(r, 2000));
-            }
-        }
+        const data = await response.json();
+        const aiJsonStr = data.candidates[0].content.parts[0].text;
         
         DOMElements.aiGenerationText.textContent = 'Finalizing new exam...';
+        const questionsArr = JSON.parse(aiJsonStr);
         
-        if (questionsArr.length === 0) {
-            throw new Error("AI failed to find valid questions in the provided text.");
+        if (!Array.isArray(questionsArr) || questionsArr.length === 0) {
+            throw new Error("AI failed to find valid questions matching those criteria in the text.");
         }
 
-        // Tag assignment and counting
         const tagCounts = {};
-
         questionsArr.forEach((q, idx) => {
             q.originalIndex = idx + 1;
-            
-            // Ensure AI provided a valid tag array
             if (!q.tags || !Array.isArray(q.tags) || q.tags.length === 0) {
-                q.tags = ["General Knowledge"];
+                q.tags = ["General"];
             }
-
-            // Track counts for the breakdown alert
-            q.tags.forEach(tag => {
-                tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-            });
+            q.tags.forEach(tag => tagCounts[tag] = (tagCounts[tag] || 0) + 1);
         });
 
         const customExamObj = {
             id: 'exam_' + Date.now(),
-            title: title,
+            title: title + ` (${questionsArr.length} Qs)`,
             questions: questionsArr
         };
 
@@ -948,17 +1043,16 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
         localStorage.setItem('quiz_custom_exams', JSON.stringify(existingCustoms));
 
         // Format summary alert
-        let successMsg = `Success! Generated an interactive exam with ${questionsArr.length} total questions.\n\nCategory Breakdown:\n`;
-        Object.entries(tagCounts)
-            .sort((a, b) => b[1] - a[1]) // sort by count descending
-            .forEach(([tag, count]) => {
-                successMsg += `- ${tag}: ${count}\n`;
-            });
+        let successMsg = `Success! Generated an interactive exam with ${questionsArr.length} targeted questions.\n\nTopic Breakdown:\n`;
+        Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).forEach(([tag, count]) => {
+            successMsg += `- ${tag}: ${count}\n`;
+        });
             
         alert(successMsg);
         
         // Reset and return
-        DOMElements.generateExamBtn.innerHTML = '<span>🪄</span> Extract & Build Exam';
+        DOMElements.cancelCreateBtn.disabled = false;
+        DOMElements.generateExamBtn.innerHTML = '<span>⚡</span> Build Targeted Exam';
         DOMElements.aiGenerationStatus.classList.add('hidden');
         DOMElements.cancelCreateBtn.click(); // Uses existing navigation cleaner
         renderLibrary(); // Re-draw library
@@ -966,8 +1060,9 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
     } catch (err) {
         console.error(err);
         alert(`Generation Failed: ${err.message}`);
+        DOMElements.cancelCreateBtn.disabled = false;
         DOMElements.generateExamBtn.disabled = false;
-        DOMElements.generateExamBtn.innerHTML = '<span>🪄</span> Extract & Build Exam';
+        DOMElements.generateExamBtn.innerHTML = '<span>⚡</span> Build Targeted Exam';
         DOMElements.aiGenerationStatus.classList.add('hidden');
     }
 });

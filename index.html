@@ -97,17 +97,61 @@
                         <h2 style="margin-bottom: 1rem; color: var(--accent-blue);">Build Custom Exam (AI)</h2>
                         <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5;">Upload a study guide PDF. Gemini AI will automatically read the text, identify multiple choice questions, generate explanations for every option, and build a fully playable interactive exam.</p>
 
-                        <div style="margin-bottom: 1.5rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Exam Name <span style="color:var(--accent-red)">*</span></label>
-                            <input type="text" id="createExamName" class="text-input" placeholder="e.g., AWS Solutions Architect P1" style="width: 100%;">
+                        <div id="createStep1">
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Exam Name <span style="color:var(--accent-red)">*</span></label>
+                                <input type="text" id="createExamName" class="text-input" placeholder="e.g., AWS Solutions Architect P1" style="width: 100%;">
+                            </div>
+
+                            <div style="margin-bottom: 2rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Source Document (PDF) <span style="color:var(--accent-red)">*</span></label>
+                                <div style="border: 2px dashed var(--glass-border); border-radius: 8px; padding: 2rem; text-align: center; background: rgba(0,0,0,0.2);">
+                                    <input type="file" id="createExamFile" accept=".pdf" style="display: none;">
+                                    <button id="triggerUploadBtn" class="secondary-btn">Select PDF File</button>
+                                    <p id="uploadFileName" style="margin-top: 1rem; color: var(--accent-blue); font-size: 0.9rem;"></p>
+                                </div>
+                            </div>
+
+                            <div id="createKeyContainer" style="margin-bottom: 1.5rem; padding: 1rem; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                    <label style="font-weight: bold; font-size: 0.9rem;">Gemini AI Connection <span style="color:var(--accent-red)">*</span></label>
+                                    <button id="editCreateKeyBtn" class="hidden" style="background: none; border: none; color: var(--accent-blue); cursor: pointer; font-size: 0.85rem; padding: 0;">Edit Key</button>
+                                </div>
+                                <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1rem;">Requires a <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">free API Key</a> to power the AI extraction engine. Your key does not expire.</p>
+                                
+                                <div id="createKeyInputArea">
+                                    <input type="password" id="createApiKeyInput" class="text-input" placeholder="Paste your Google Gemini API Key..." style="width: 100%; margin-bottom: 0.5rem;" autocomplete="off">
+                                    <button id="saveCreateKeyBtn" class="secondary-btn" style="width: 100%; font-size: 0.85rem; padding: 0.4rem;">Save & Connect API</button>
+                                </div>
+                                <p id="createKeySuccess" class="hidden" style="color: var(--accent-green); font-size: 0.85rem; margin-top: 0.5rem;">✅ API Key Linked Successfully</p>
+                            </div>
                         </div>
 
-                        <div style="margin-bottom: 2rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Source Document (PDF) <span style="color:var(--accent-red)">*</span></label>
-                            <div style="border: 2px dashed var(--glass-border); border-radius: 8px; padding: 2rem; text-align: center; background: rgba(0,0,0,0.2);">
-                                <input type="file" id="createExamFile" accept=".pdf" style="display: none;">
-                                <button id="triggerUploadBtn" class="secondary-btn">Select PDF File</button>
-                                <p id="uploadFileName" style="margin-top: 1rem; color: var(--accent-blue); font-size: 0.9rem;"></p>
+                        <div id="createStep2" class="hidden" style="margin-bottom: 1.5rem; padding: 1.5rem; border-radius: 8px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--accent-green);">
+                            <h3 style="color: var(--accent-green); margin-bottom: 0.5rem;">✅ Scan Complete</h3>
+                            <p id="scanEstimateText" style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Found ~0 questions across topics.</p>
+                            
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Generation Strategy (Max 50 Questions)</label>
+                            <select id="generationMode" class="text-input" style="width: 100%; margin-bottom: 1rem;">
+                                <option value="random">Random Fast 50</option>
+                                <option value="topic">Filter by Specific Topics</option>
+                                <option value="range">Extract by Exact Range (e.g., Q1-Q50)</option>
+                            </select>
+
+                            <div id="topicSelectionCont" class="hidden" style="margin-bottom: 1rem; background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Select Topics to Extract:</label>
+                                <div id="scannedTopics" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
+                            </div>
+
+                            <div id="rangeSelectionCont" class="hidden" style="margin-bottom: 1rem; display: flex; gap: 1rem;">
+                                <div style="flex: 1;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Start Q#</label>
+                                    <input type="number" id="genRangeStart" class="text-input" value="1" min="1" style="width: 100%;">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">End Q# (Max 50 diff)</label>
+                                    <input type="number" id="genRangeEnd" class="text-input" value="50" min="1" style="width: 100%;">
+                                </div>
                             </div>
                         </div>
 
@@ -118,24 +162,13 @@
                             </div>
                         </div>
 
-                        <div id="createKeyContainer" style="margin-bottom: 1.5rem; padding: 1rem; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                                <label style="font-weight: bold; font-size: 0.9rem;">Gemini AI Connection <span style="color:var(--accent-red)">*</span></label>
-                                <button id="editCreateKeyBtn" class="hidden" style="background: none; border: none; color: var(--accent-blue); cursor: pointer; font-size: 0.85rem; padding: 0;">Edit Key</button>
-                            </div>
-                            <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1rem;">Requires a <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">free API Key</a> to power the AI extraction engine. Your key does not expire.</p>
-                            
-                            <div id="createKeyInputArea">
-                                <input type="password" id="createApiKeyInput" class="text-input" placeholder="Paste your Google Gemini API Key..." style="width: 100%; margin-bottom: 0.5rem;" autocomplete="off">
-                                <button id="saveCreateKeyBtn" class="secondary-btn" style="width: 100%; font-size: 0.85rem; padding: 0.4rem;">Save & Connect API</button>
-                            </div>
-                            <p id="createKeySuccess" class="hidden" style="color: var(--accent-green); font-size: 0.85rem; margin-top: 0.5rem;">✅ API Key Linked Successfully</p>
-                        </div>
-
                         <div style="display: flex; gap: 1rem;">
                             <button id="cancelCreateBtn" class="secondary-btn" style="flex: 1;">Cancel</button>
-                            <button id="generateExamBtn" class="primary-btn" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" disabled>
-                                <span>🪄</span> Extract & Build Exam
+                            <button id="quickScanBtn" class="primary-btn" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" disabled>
+                                <span>📄</span> Quick Scan Document
+                            </button>
+                            <button id="generateExamBtn" class="primary-btn hidden" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--accent-green); border-color: var(--accent-green);">
+                                <span>⚡</span> Build Targeted Exam
                             </button>
                         </div>
                     </div>
