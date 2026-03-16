@@ -987,6 +987,7 @@ DOMElements.generateExamBtn.addEventListener('click', async () => {
         3. STRICT LIMIT: You must output a maximum of 50 questions. Do not exceed 50.
         4. DO NOT output conversational text or markdown. Output ONLY a raw JSON array.
         5. Make sure 'answer' is simply the correct letter.
+        6. You MUST write a custom 'hint' for every single question to help guide the student.
         
         SCHEMA STUCTURE PER QUESTION:
         {
