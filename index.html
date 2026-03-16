@@ -100,6 +100,12 @@
                 <div id="explanationCont" class="glass-panel explanation hidden">
                     <h3>Review Answers</h3>
                     <div id="explanationBody"></div>
+                    
+                    <div class="ai-deep-dive-actions hidden">
+                        <button id="askAiBtn" class="ai-btn">
+                            <span class="ai-sparkle">✨</span> Deep Dive with AI
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -114,8 +120,43 @@
                 </div>
             </div>
         </main>
+
+        <!-- AI Chat Side Panel -->
+        <aside id="chatPanel" class="chat-panel hidden">
+            <div class="chat-header">
+                <h3><span class="ai-sparkle">✨</span> AI Tutor</h3>
+                <button id="closeChatBtn" class="icon-btn">×</button>
+            </div>
+            
+            <!-- API Key Config (Shows initially if no key) -->
+            <div id="apiConfigView" class="chat-config-view">
+                <p>Welcome! To use the AI deep dive feature locally, please provide your free Google Gemini API Key. It will be saved securely within your browser.</p>
+                <div class="api-key-input-group">
+                    <input type="password" id="apiKeyInput" placeholder="Paste Gemini API Key..." autocomplete="off">
+                    <button id="saveApiKeyBtn" class="small-primary-btn">Save Key</button>
+                </div>
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="get-key-link">Get a free key here →</a>
+            </div>
+
+            <!-- Chat Interface -->
+            <div id="chatActiveView" class="chat-active-view hidden">
+                <div id="chatMessages" class="chat-messages">
+                    <div class="chat-msg ai-msg">
+                        <p>Hi! I'm ready to help you deep dive into this question. What part would you like me to clarify?</p>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <textarea id="chatInput" placeholder="Ask about option A, concepts, etc..." rows="2"></textarea>
+                    <button id="sendChatBtn" class="icon-btn send-btn">↑</button>
+                </div>
+                <div class="chat-footer">
+                    <button id="resetApiBtn" class="text-btn">Reset API Key</button>
+                </div>
+            </div>
+        </aside>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

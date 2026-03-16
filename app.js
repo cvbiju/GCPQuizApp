@@ -25,8 +25,22 @@ const DOMElements = {
     liveAccuracyText: document.getElementById('liveAccuracyText'),
     hintToggleBtn: document.getElementById('hintToggleBtn'),
     hintTextCont: document.getElementById('hintTextCont'),
-    hintText: document.getElementById('hintText')
+    hintText: document.getElementById('hintText'),
+    askAiBtn: document.getElementById('askAiBtn'),
+    chatPanel: document.getElementById('chatPanel'),
+    closeChatBtn: document.getElementById('closeChatBtn'),
+    apiConfigView: document.getElementById('apiConfigView'),
+    apiKeyInput: document.getElementById('apiKeyInput'),
+    saveApiKeyBtn: document.getElementById('saveApiKeyBtn'),
+    chatActiveView: document.getElementById('chatActiveView'),
+    chatMessages: document.getElementById('chatMessages'),
+    chatInput: document.getElementById('chatInput'),
+    sendChatBtn: document.getElementById('sendChatBtn'),
+    resetApiBtn: document.getElementById('resetApiBtn')
 };
+
+// Chat State
+let chatApiKey = localStorage.getItem('gcp_quiz_gemini_key') || '';
 
 // Initialize app
 async function init() {
@@ -73,6 +87,8 @@ function loadQuestion(index) {
     DOMElements.optionsCont.innerHTML = '';
     DOMElements.explanationCont.classList.add('hidden');
     DOMElements.explanationBody.innerHTML = '';
+    const aiActions = DOMElements.explanationCont.querySelector('.ai-deep-dive-actions');
+    if (aiActions) aiActions.classList.add('hidden');
 
     DOMElements.submitBtn.classList.remove('hidden', 'submitted-state');
     DOMElements.submitBtn.disabled = true;
@@ -89,6 +105,14 @@ function loadQuestion(index) {
     } else {
         DOMElements.hintToggleBtn.classList.add('hidden');
     }
+
+    // Reset AI Chat
+    DOMElements.chatPanel.classList.add('hidden');
+    DOMElements.chatMessages.innerHTML = `
+        <div class="chat-msg ai-msg">
+            <p>Hi! I'm ready to help you deep dive into this question. What part would you like me to clarify?</p>
+        </div>
+    `;
 
     // Update Progress
     const progressPercent = ((index) / questions.length) * 100;
@@ -214,7 +238,12 @@ function submitAnswer() {
     }
     DOMElements.explanationBody.innerHTML = expHtml;
     DOMElements.explanationCont.classList.remove('hidden');
-    DOMElements.explanationCont.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const aiActions = DOMElements.explanationCont.querySelector('.ai-deep-dive-actions');
+    if (aiActions) aiActions.classList.remove('hidden');
+    
+    if (!isCompletelyCorrect) {
+        DOMElements.explanationCont.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 
     // Change Submit button state instead of hiding it
     DOMElements.submitBtn.classList.add('submitted-state');
@@ -264,6 +293,144 @@ DOMElements.restartBtn.addEventListener('click', () => {
 
 DOMElements.hintToggleBtn.addEventListener('click', () => {
     DOMElements.hintTextCont.classList.toggle('hidden');
+});
+
+// --- AI Chat Logic ---
+
+function toggleChat() {
+    DOMElements.chatPanel.classList.toggle('hidden');
+    if (!DOMElements.chatPanel.classList.contains('hidden')) {
+        checkApiKey();
+    }
+}
+
+function checkApiKey() {
+    if (chatApiKey) {
+        DOMElements.apiConfigView.style.display = 'none';
+        DOMElements.chatActiveView.style.display = 'flex';
+        DOMElements.chatActiveView.classList.remove('hidden');
+    } else {
+        DOMElements.apiConfigView.style.display = 'flex';
+        DOMElements.chatActiveView.style.display = 'none';
+        DOMElements.chatActiveView.classList.add('hidden');
+    }
+}
+
+function saveApiKey() {
+    const key = DOMElements.apiKeyInput.value.trim();
+    if (key) {
+        chatApiKey = key;
+        localStorage.setItem('gcp_quiz_gemini_key', key);
+        DOMElements.apiKeyInput.value = '';
+        checkApiKey();
+    }
+}
+
+function resetApiKey() {
+    chatApiKey = '';
+    localStorage.removeItem('gcp_quiz_gemini_key');
+    checkApiKey();
+    // Clear chat history
+    DOMElements.chatMessages.innerHTML = `
+        <div class="chat-msg ai-msg">
+            <p>Hi! I'm ready to help you deep dive into this question. What part would you like me to clarify?</p>
+        </div>
+    `;
+}
+
+function appendMessage(text, isUser = false) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-msg ${isUser ? 'user-msg' : 'ai-msg'}`;
+    
+    if (isUser) {
+        msgDiv.textContent = text;
+    } else {
+        // Parse markdown for AI responses
+        msgDiv.innerHTML = marked.parse(text);
+    }
+    
+    DOMElements.chatMessages.appendChild(msgDiv);
+    DOMElements.chatMessages.scrollTop = DOMElements.chatMessages.scrollHeight;
+}
+
+async function sendChat() {
+    const prompt = DOMElements.chatInput.value.trim();
+    if (!prompt || !chatApiKey) return;
+
+    // UI setup
+    appendMessage(prompt, true);
+    DOMElements.chatInput.value = '';
+    DOMElements.sendChatBtn.disabled = true;
+    
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'chat-msg ai-msg';
+    loadingDiv.innerHTML = '<p><i>Thinking <span class="ai-sparkle">✨</span>...</i></p>';
+    DOMElements.chatMessages.appendChild(loadingDiv);
+    DOMElements.chatMessages.scrollTop = DOMElements.chatMessages.scrollHeight;
+
+    // Build context payload
+    const q = questions[currentQuestionIndex];
+    let contextStr = `Context:\nYou are a highly skilled Google Cloud architecture tutor.\nThe student is studying for the Professional Cloud Security Engineer exam.\n\nThey are currently looking at this question:\n${q.question}\n\nOptions:\n`;
+    Object.entries(q.options).forEach(([k, v]) => {
+        contextStr += `- ${k}: ${v}\n`;
+    });
+    contextStr += `\nThe strictly correct answer is: ${q.answer}\n`;
+    if (q.explanations) {
+        contextStr += `Official Explanations provided in the quiz:\n`;
+        Object.entries(q.explanations).forEach(([k, exp]) => {
+            contextStr += `- Option ${k}: ${exp.text}\n`;
+        });
+    }
+
+    const fullPrompt = `${contextStr}\n\nThe student asks: "${prompt}"\n\nPlease provide a clear, concise, and helpful tutoring response. Ensure you use facts accurate to Google Cloud Platform.`;
+
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${chatApiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: fullPrompt }] }],
+                systemInstruction: { parts: [{ text: "You are an expert Google Cloud Authorized Trainer tutoring a student. Keep answers focused, engaging, and strictly factual to GCP documentation. Format with markdown if needed for readability, but do not use massive headers that crowd the small chat window." }] },
+                generationConfig: { temperature: 0.2 }
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error?.message || 'API Error');
+        }
+
+        const data = await response.json();
+        const aiText = data.candidates[0].content.parts[0].text;
+        
+        loadingDiv.remove();
+        appendMessage(aiText, false);
+
+    } catch (error) {
+        loadingDiv.remove();
+        console.error(error);
+        if (error.message.includes("API key not valid")) {
+            appendMessage("⚠️ Error: The API key provided is invalid or expired. Please reset your API key and try again.");
+        } else {
+            appendMessage(`⚠️ Error: Could not connect to Gemini API. (${error.message})`);
+        }
+    } finally {
+        DOMElements.sendChatBtn.disabled = false;
+        DOMElements.chatInput.focus();
+    }
+}
+
+// Chat event listeners
+DOMElements.askAiBtn.addEventListener('click', toggleChat);
+DOMElements.closeChatBtn.addEventListener('click', toggleChat);
+DOMElements.saveApiKeyBtn.addEventListener('click', saveApiKey);
+DOMElements.resetApiBtn.addEventListener('click', resetApiKey);
+DOMElements.sendChatBtn.addEventListener('click', sendChat);
+DOMElements.chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChat();
+    }
 });
 
 // Start
