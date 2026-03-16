@@ -72,7 +72,9 @@ const DOMElements = {
     questionText: document.getElementById('questionText'),
     optionsCont: document.getElementById('optionsCont'),
     submitBtn: document.getElementById('submitBtn'),
+    prevBtn: document.getElementById('prevBtn'),
     nextBtn: document.getElementById('nextBtn'),
+    reviewQuizBtn: document.getElementById('reviewQuizBtn'),
     explanationCont: document.getElementById('explanationCont'),
     explanationBody: document.getElementById('explanationBody'),
     progressBar: document.getElementById('progressBar'),
@@ -560,6 +562,13 @@ function loadQuestion(index) {
 
     DOMElements.nextBtn.classList.add('hidden');
     DOMElements.nextBtn.classList.remove('highlighted');
+    
+    // Phase 8: Previous Navigation
+    if (index > 0) {
+        DOMElements.prevBtn.classList.remove('hidden');
+    } else {
+        DOMElements.prevBtn.classList.add('hidden');
+    }
 
     // Handle Hint Logic
     DOMElements.hintTextCont.classList.add('hidden');
@@ -607,6 +616,21 @@ function loadQuestion(index) {
         btn.addEventListener('click', () => handleOptionClick(btn, letter, isMultipleChoice, exactCorrect.length));
         DOMElements.optionsCont.appendChild(btn);
     });
+
+    // Phase 8: Restore Answered State for Review Mode
+    if (q.userSelected) {
+        q.userSelected.forEach(letter => {
+            selectedOptions.add(letter);
+            const btn = DOMElements.optionsCont.querySelector(`[data-letter="${letter}"]`);
+            if (btn) btn.classList.add('selected');
+        });
+        
+        // Temporarily adjust totalAnswered and userScore so submitAnswer() doesn't double-count
+        totalAnswered--;
+        if (q.isCorrect) userScore--;
+        
+        submitAnswer(); 
+    }
 }
 
 function handleOptionClick(btn, letter, isMultipleChoice, maxSelections) {
@@ -640,6 +664,9 @@ function submitAnswer() {
     const correctAnswersSet = new Set(q.answer.split(''));
     let isCompletelyCorrect = true;
 
+    // Phase 8: Persist Answer State
+    q.userSelected = Array.from(selectedOptions);
+
     // Evaluate
     document.querySelectorAll('.option-btn').forEach(btn => {
         const letter = btn.dataset.letter;
@@ -666,6 +693,8 @@ function submitAnswer() {
     if (isCompletelyCorrect) {
         userScore++;
     }
+    
+    q.isCorrect = isCompletelyCorrect;
     
     updateWeaknesses(q.originalIndex, isCompletelyCorrect);
     
@@ -1145,6 +1174,21 @@ DOMElements.submitBtn.addEventListener('click', submitAnswer);
 DOMElements.nextBtn.addEventListener('click', () => loadQuestion(currentQuestionIndex + 1));
 DOMElements.hintToggleBtn.addEventListener('click', () => {
     DOMElements.hintTextCont.classList.toggle('hidden');
+});
+
+// Phase 8: Previous Navigation
+DOMElements.prevBtn.addEventListener('click', () => {
+    if (currentQuestionIndex > 0) {
+        loadQuestion(currentQuestionIndex - 1);
+    }
+});
+
+// Phase 8: Review Responses Navigation
+DOMElements.reviewQuizBtn.addEventListener('click', () => {
+    DOMElements.summary.classList.add('hidden');
+    DOMElements.quiz.classList.remove('hidden');
+    isExamMode = false; // Disable any active timers
+    loadQuestion(0);
 });
 
 // --- AI Chat Logic ---

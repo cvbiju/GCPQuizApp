@@ -279,6 +279,7 @@
                 </div>
 
                 <div class="actions">
+                    <button id="prevBtn" class="secondary-btn hidden" style="margin-right: auto;"><span class="arrow">←</span> Previous</button>
                     <button id="submitBtn" class="primary-btn" disabled>Submit Answer</button>
                     <button id="nextBtn" class="secondary-btn hidden">Next Question <span class="arrow">→</span></button>
                 </div>
@@ -309,10 +310,12 @@
                         <textarea id="quizNotes" class="text-input" rows="3" placeholder="What did you learn? What should you review next?" style="width: 100%; resize: vertical; margin-bottom: 1rem;"></textarea>
                     </div>
 
-                    <div style="display: flex; gap: 1rem; width: 100%;">
+                    <div style="display: flex; gap: 1rem; width: 100%; margin-bottom: 1rem;">
                         <button id="saveHistoryBtn" class="primary-btn" style="flex: 2;">Save Score to History</button>
                         <button id="restartBtn" class="secondary-btn" style="flex: 1;">Setup Menu</button>
                     </div>
+                    
+                    <button id="reviewQuizBtn" class="secondary-btn" style="width: 100%;">🔍 Review Responses</button>
                 </div>
             </div>
         </main>
