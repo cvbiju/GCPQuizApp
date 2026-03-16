@@ -13,6 +13,7 @@ let secondsRemaining = 0;
 let isExamMode = false;
 
 const DOMElements = {
+    globalHomeBtn: document.getElementById('globalHomeBtn'),
     loading: document.getElementById('loading'),
     quiz: document.getElementById('quiz'),
     summary: document.getElementById('summary'),
@@ -698,6 +699,15 @@ DOMElements.cancelCreateBtn.addEventListener('click', () => {
 
 DOMElements.backToLibraryBtn.addEventListener('click', () => {
     DOMElements.setupView.classList.add('hidden');
+    renderLibrary();
+});
+
+DOMElements.globalHomeBtn.addEventListener('click', () => {
+    // If currently taking a quiz, save the state before navigating away
+    if (!DOMElements.quiz.classList.contains('hidden')) {
+        clearInterval(timerInterval);
+        saveActiveState();
+    }
     renderLibrary();
 });
 
