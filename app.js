@@ -14,6 +14,8 @@ let isExamMode = false;
 
 const DOMElements = {
     globalHomeBtn: document.getElementById('globalHomeBtn'),
+    appHeaderTitle: document.getElementById('appHeaderTitle'),
+    appHeaderSubtitle: document.getElementById('appHeaderSubtitle'),
     loading: document.getElementById('loading'),
     quiz: document.getElementById('quiz'),
     summary: document.getElementById('summary'),
@@ -173,6 +175,14 @@ function createExamCard(title, count, tagText, onClick) {
 function loadExamToSetup(title, examQuestionsArray) {
     DOMElements.libraryView.classList.add('hidden');
     DOMElements.activeExamTitle.textContent = title;
+    
+    // Update main application header
+    DOMElements.appHeaderTitle.textContent = title;
+    if (title === 'GCP Security Engineer') {
+        DOMElements.appHeaderSubtitle.textContent = 'Exam Prep Topics';
+    } else {
+        DOMElements.appHeaderSubtitle.textContent = 'Custom AI Assessment';
+    }
     
     originalQuestions = examQuestionsArray;
     
