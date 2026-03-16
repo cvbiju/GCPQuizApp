@@ -16,7 +16,22 @@ const DOMElements = {
     loading: document.getElementById('loading'),
     quiz: document.getElementById('quiz'),
     summary: document.getElementById('summary'),
+    libraryView: document.getElementById('library-view'),
+    examGrid: document.getElementById('examGrid'),
+    navCreateBtn: document.getElementById('navCreateBtn'),
+    createView: document.getElementById('create-view'),
+    createExamName: document.getElementById('createExamName'),
+    createExamFile: document.getElementById('createExamFile'),
+    triggerUploadBtn: document.getElementById('triggerUploadBtn'),
+    uploadFileName: document.getElementById('uploadFileName'),
+    generateExamBtn: document.getElementById('generateExamBtn'),
+    cancelCreateBtn: document.getElementById('cancelCreateBtn'),
+    aiGenerationStatus: document.getElementById('aiGenerationStatus'),
+    aiGenerationText: document.getElementById('aiGenerationText'),
     setupView: document.getElementById('setup-view'),
+    activeExamTitle: document.getElementById('activeExamTitle'),
+    setupTotalCount: document.getElementById('setupTotalCount'),
+    backToLibraryBtn: document.getElementById('backToLibraryBtn'),
     historyView: document.getElementById('history-view'),
     resumeCont: document.getElementById('resumeCont'),
     resumeDetails: document.getElementById('resumeDetails'),
@@ -69,41 +84,92 @@ const DOMElements = {
 // Chat State
 let chatApiKey = localStorage.getItem('gcp_quiz_gemini_key') || '';
 
+let defaultGcpExam = [];
+
 // Initialize app
 async function init() {
     try {
         const response = await fetch('questions.json');
-        if (!response.ok) throw new Error('Failed to load questions');
+        if (!response.ok) throw new Error('Failed to load default questions');
         
         const rawData = await response.json();
-        // Keep questions that actually have explanations (up to 25)
-        originalQuestions = rawData.filter(q => q.explanations);
-        originalQuestions.forEach((q, idx) => q.originalIndex = idx + 1);
+        // Keep questions that actually have explanations
+        defaultGcpExam = rawData.filter(q => q.explanations);
+        defaultGcpExam.forEach((q, idx) => q.originalIndex = idx + 1);
         
-        if (originalQuestions.length === 0) {
-            throw new Error('No valid questions found');
-        }
-
-        DOMElements.rangeEnd.max = originalQuestions.length;
-        DOMElements.rangeEnd.value = originalQuestions.length;
-
-        // Extract unique tags
-        const allTags = new Set();
-        originalQuestions.forEach(q => q.tags.forEach(t => allTags.add(t)));
-        renderTagFilters(Array.from(allTags).sort());
-
         // Add small delay for UI smoothness
         setTimeout(() => {
             DOMElements.loading.classList.add('hidden');
-            checkSavedSession();
-            checkWeaknesses();
-            DOMElements.setupView.classList.remove('hidden');
+            renderLibrary();
         }, 800);
         
     } catch (err) {
         console.error(err);
-        DOMElements.loading.innerHTML = '<p style="color:var(--accent-red)">Error loading questions. Please ensure a local server is running.</p>';
+        DOMElements.loading.innerHTML = '<p style="color:var(--accent-red)">Error loading default questions. Please ensure a local server is running.</p>';
     }
+}
+
+function renderLibrary() {
+    DOMElements.setupView.classList.add('hidden');
+    DOMElements.createView.classList.add('hidden');
+    DOMElements.summary.classList.add('hidden');
+    DOMElements.historyView.classList.add('hidden');
+    DOMElements.quiz.classList.add('hidden');
+    DOMElements.scoreboard.classList.add('hidden');
+    
+    DOMElements.libraryView.classList.remove('hidden');
+    DOMElements.examGrid.innerHTML = '';
+
+    // Render Default Exam
+    const defaultCard = createExamCard('Google Cloud Security Engineer (Official)', defaultGcpExam.length, 'Default', () => {
+        loadExamToSetup('Google Cloud Security Engineer', defaultGcpExam);
+    });
+    DOMElements.examGrid.appendChild(defaultCard);
+
+    // Render Custom Exams from LocalStorage
+    const customExams = JSON.parse(localStorage.getItem('quiz_custom_exams') || '[]');
+    customExams.forEach((exam, idx) => {
+        const card = createExamCard(exam.title, exam.questions.length, 'AI Generated', () => {
+            // Re-map indices just in case
+            exam.questions.forEach((q, i) => q.originalIndex = i + 1);
+            loadExamToSetup(exam.title, exam.questions);
+        });
+        DOMElements.examGrid.appendChild(card);
+    });
+}
+
+function createExamCard(title, count, tagText, onClick) {
+    const div = document.createElement('div');
+    div.className = 'exam-card';
+    div.innerHTML = `
+        <span class="exam-tag">${tagText}</span>
+        <h3 style="margin-bottom: 0.5rem; padding-right: 3rem; color: var(--text-primary); font-size: 1.1rem; line-height: 1.4;">${title}</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">${count} Questions</p>
+    `;
+    div.addEventListener('click', onClick);
+    return div;
+}
+
+function loadExamToSetup(title, examQuestionsArray) {
+    DOMElements.libraryView.classList.add('hidden');
+    DOMElements.activeExamTitle.textContent = title;
+    
+    originalQuestions = examQuestionsArray;
+    
+    DOMElements.rangeEnd.max = originalQuestions.length;
+    DOMElements.rangeEnd.value = originalQuestions.length;
+    DOMElements.setupTotalCount.textContent = originalQuestions.length;
+
+    // Extract unique tags for this specific exam
+    const allTags = new Set();
+    originalQuestions.forEach(q => {
+        if (q.tags) q.tags.forEach(t => allTags.add(t));
+    });
+    renderTagFilters(Array.from(allTags).sort());
+
+    checkSavedSession();
+    checkWeaknesses();
+    DOMElements.setupView.classList.remove('hidden');
 }
 
 function checkSavedSession() {
@@ -614,12 +680,210 @@ function showSummary() {
 DOMElements.startNewBtn.addEventListener('click', startNewQuiz);
 DOMElements.retakeMissedBtn.addEventListener('click', startWeaknessesQuiz);
 DOMElements.resumeBtn.addEventListener('click', resumeQuiz);
+
+DOMElements.navCreateBtn.addEventListener('click', () => {
+    DOMElements.libraryView.classList.add('hidden');
+    DOMElements.createView.classList.remove('hidden');
+});
+
+DOMElements.cancelCreateBtn.addEventListener('click', () => {
+    DOMElements.createView.classList.add('hidden');
+    DOMElements.libraryView.classList.remove('hidden');
+    DOMElements.createExamName.value = '';
+    DOMElements.uploadFileName.textContent = '';
+    DOMElements.createExamFile.value = '';
+    DOMElements.triggerUploadBtn.textContent = 'Select PDF File';
+    DOMElements.generateExamBtn.disabled = true;
+});
+
+DOMElements.backToLibraryBtn.addEventListener('click', () => {
+    DOMElements.setupView.classList.add('hidden');
+    renderLibrary();
+});
+
 DOMElements.viewHistoryBtn.addEventListener('click', showHistoryView);
 DOMElements.backFromHistoryBtn.addEventListener('click', () => {
     DOMElements.historyView.classList.add('hidden');
     DOMElements.setupView.classList.remove('hidden');
     checkSavedSession();
 });
+
+// --- Phase 5 Custom Exam Creation Logic ---
+
+let customPdfText = '';
+
+DOMElements.triggerUploadBtn.addEventListener('click', () => {
+    DOMElements.createExamFile.click();
+});
+
+DOMElements.createExamFile.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+        DOMElements.uploadFileName.textContent = '';
+        DOMElements.generateExamBtn.disabled = true;
+        customPdfText = '';
+        return;
+    }
+
+    if (file.type !== 'application/pdf') {
+        alert("Please select a valid PDF file.");
+        DOMElements.createExamFile.value = '';
+        return;
+    }
+
+    DOMElements.uploadFileName.textContent = `Attached: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+    DOMElements.generateExamBtn.disabled = false;
+    
+    // We do not extract immediately to save UI thread locking, we wait for 'Generate' click.
+});
+
+async function extractTextFromPDF(pdfDataUrl) {
+    DOMElements.aiGenerationText.textContent = 'Reading PDF structure...';
+    try {
+        const loadingTask = pdfjsLib.getDocument(pdfDataUrl);
+        const pdf = await loadingTask.promise;
+        const numPages = pdf.numPages;
+        let fullText = '';
+
+        for (let i = 1; i <= numPages; i++) {
+            DOMElements.aiGenerationText.textContent = `Extracting text: Page ${i} of ${numPages}`;
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map(item => item.str).join(' ');
+            fullText += pageText + '\n\n';
+        }
+        
+        return fullText;
+    } catch (err) {
+        console.error("PDF Extraction Error:", err);
+        throw new Error("Unable to read PDF file. It might be corrupted or protected.");
+    }
+}
+
+DOMElements.generateExamBtn.addEventListener('click', async () => {
+    const file = DOMElements.createExamFile.files[0];
+    const title = DOMElements.createExamName.value.trim();
+    if (!file || !title) {
+        alert("Please provide both an Exam Name and a PDF file.");
+        return;
+    }
+
+    if (!chatApiKey) {
+        alert("Please configure your Gemini API Key in the Ask AI tab (bottom right) before generating custom exams.");
+        return;
+    }
+
+    try {
+        DOMElements.generateExamBtn.disabled = true;
+        DOMElements.generateExamBtn.innerHTML = '<span>⏳</span> Processing...';
+        DOMElements.aiGenerationStatus.classList.remove('hidden');
+
+        // 1. Read PDF locally
+        const pdfDataUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.readAsDataURL(file);
+        });
+
+        const extractedText = await extractTextFromPDF(pdfDataUrl);
+        
+        if (extractedText.length < 50) {
+            throw new Error("Could not extract enough text. The PDF might be scanned images instead of text.");
+        }
+
+        // 2. Prompt Gemini 1.5 Flash
+        DOMElements.aiGenerationText.textContent = 'Structuring JSON via AI (Takes 10-30s)...';
+        
+        const systemPrompt = `You are a strict data structuring AI. Your job is to extract multiple choice questions from the following text and convert them exactly into the specified JSON format.
+        
+        REQUIREMENTS:
+        1. Find as many valid multiple choice questions in the text as possible (at least 10 if available).
+        2. DO NOT output conversational text, markdown formatting, or HTML. 
+        3. Output ONLY a raw JSON array.
+        4. Make sure 'answer' is simply the correct letter (or letters like 'AC' for multiple choice).
+        
+        SCHEMA STUCTURE PER QUESTION:
+        {
+          "question": "The question text...",
+          "options": {
+            "A": "Option text",
+            "B": "Option text"
+          },
+          "answer": "B",
+          "explanations": {
+            "A": "Why A is wrong...",
+            "B": "Why B is correct..."
+          },
+          "hint": "A subtle clue..."
+        }`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${chatApiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                contents: [{
+                    parts: [{ text: "Extract questions from this study guide document:\n\n" + extractedText.substring(0, 100000) }]
+                }],
+                generationConfig: {
+                    temperature: 0.1,
+                    responseMimeType: "application/json"
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`API returned ${response.status}: Please check your API key validity.`);
+        }
+
+        const data = await response.json();
+        let aiJsonStr = data.candidates[0].content.parts[0].text;
+        
+        // 3. Parse and Save
+        DOMElements.aiGenerationText.textContent = 'Finalizing new exam...';
+        const questionsArr = JSON.parse(aiJsonStr);
+        
+        if (!Array.isArray(questionsArr) || questionsArr.length === 0) {
+            throw new Error("AI failed to find valid questions in the provided text.");
+        }
+
+        // Tag assignment (re-using Phase 4 logic on new data simply for UI compatibility)
+        questionsArr.forEach((q, idx) => {
+            q.originalIndex = idx + 1;
+            q.tags = ["Custom Upload"]; // Default tag
+        });
+
+        const customExamObj = {
+            id: 'exam_' + Date.now(),
+            title: title,
+            questions: questionsArr
+        };
+
+        const existingCustoms = JSON.parse(localStorage.getItem('quiz_custom_exams') || '[]');
+        existingCustoms.push(customExamObj);
+        localStorage.setItem('quiz_custom_exams', JSON.stringify(existingCustoms));
+
+        alert(`Success! Generated an interactive exam with ${questionsArr.length} questions.`);
+        
+        // Reset and return
+        DOMElements.generateExamBtn.innerHTML = '<span>🪄</span> Extract & Build Exam';
+        DOMElements.aiGenerationStatus.classList.add('hidden');
+        DOMElements.cancelCreateBtn.click(); // Uses existing navigation cleaner
+        renderLibrary(); // Re-draw library
+
+    } catch (err) {
+        console.error(err);
+        alert(`Generation Failed: ${err.message}`);
+        DOMElements.generateExamBtn.disabled = false;
+        DOMElements.generateExamBtn.innerHTML = '<span>🪄</span> Extract & Build Exam';
+        DOMElements.aiGenerationStatus.classList.add('hidden');
+    }
+});
+
+// ------------------------------------------
+
 DOMElements.saveHistoryBtn.addEventListener('click', saveHistory);
 DOMElements.restartBtn.addEventListener('click', () => {
     DOMElements.summary.classList.add('hidden');

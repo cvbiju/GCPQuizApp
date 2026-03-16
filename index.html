@@ -9,6 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <!-- AI Parser required lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 </head>
 <body>
     <div class="overlay-grad"></div>
@@ -66,9 +69,72 @@
 
             <!-- Main Workspace -->
             <main>
+                <div id="loading" class="state-view">
+                    <div class="blob-spinner"></div>
+                    <h3>Waking up the platform...</h3>
+                </div>
+
+                <!-- NEW PHASE 5: LIBRARY VIEW -->
+                <div id="library-view" class="state-view hidden">
+                    <div class="glass-panel" style="max-width: 800px; margin: 0 auto; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                            <h2 style="font-size: 1.8rem; background: -webkit-linear-gradient(#fff, #aaa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">📚 Exam Library</h2>
+                            <button id="navCreateBtn" class="primary-btn" style="padding: 0.5rem 1.25rem; font-size: 0.9rem;">+ Build Custom Exam</button>
+                        </div>
+
+                        <div id="examGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+                            <!-- Cards populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW PHASE 5: CREATE EXAM VIEW -->
+                <div id="create-view" class="state-view hidden">
+                    <div class="glass-panel" style="max-width: 600px; margin: 0 auto; text-align: left;">
+                        <h2 style="margin-bottom: 1rem; color: var(--accent-blue);">Build Custom Exam (AI)</h2>
+                        <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5;">Upload a study guide PDF. Gemini AI will automatically read the text, identify multiple choice questions, generate explanations for every option, and build a fully playable interactive exam.</p>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Exam Name <span style="color:var(--accent-red)">*</span></label>
+                            <input type="text" id="createExamName" class="text-input" placeholder="e.g., AWS Solutions Architect P1" style="width: 100%;">
+                        </div>
+
+                        <div style="margin-bottom: 2rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Source Document (PDF) <span style="color:var(--accent-red)">*</span></label>
+                            <div style="border: 2px dashed var(--glass-border); border-radius: 8px; padding: 2rem; text-align: center; background: rgba(0,0,0,0.2);">
+                                <input type="file" id="createExamFile" accept=".pdf" style="display: none;">
+                                <button id="triggerUploadBtn" class="secondary-btn">Select PDF File</button>
+                                <p id="uploadFileName" style="margin-top: 1rem; color: var(--accent-blue); font-size: 0.9rem;"></p>
+                            </div>
+                        </div>
+
+                        <div id="aiGenerationStatus" class="hidden" style="margin-bottom: 2rem; padding: 1rem; border-radius: 8px; background: rgba(88, 166, 255, 0.1); border: 1px solid var(--accent-blue);">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div class="blob-spinner" style="width: 24px; height: 24px; border-width: 3px;"></div>
+                                <span id="aiGenerationText" style="color: white; font-weight: bold;">Reading PDF (0 pages)...</span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem;">
+                            <button id="cancelCreateBtn" class="secondary-btn" style="flex: 1;">Cancel</button>
+                            <button id="generateExamBtn" class="primary-btn" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" disabled>
+                                <span>🪄</span> Extract & Build Exam
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Application Setup View -->
-                <div id="setup-view" class="state-view glass-panel">
-                    <h2>Quiz Configuration</h2>
+                <div id="setup-view" class="state-view glass-panel hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 id="activeExamTitle" style="font-size: 1.5rem; color: var(--text-primary);">Configuring Exam</h2>
+                        <button id="backToLibraryBtn" class="secondary-btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">🔙 Library</button>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; text-align: center;">
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">Total Available Questions: <strong id="setupTotalCount" style="color: white; font-size: 1.1em;">0</strong></p>
+                    </div>
+
                     <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Select a question range or resume a previous session.</p>
                     
                     <div id="resumeCont" class="hidden" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(88, 166, 255, 0.1); border: 1px solid var(--accent-blue); border-radius: 12px;">
