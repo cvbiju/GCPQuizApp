@@ -942,6 +942,7 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
         3. DO NOT output conversational text or markdown. Output ONLY a raw JSON array. If no questions are found, output an empty array [].
         4. Make sure 'answer' is simply the correct letter.
         5. You MUST write a custom 'hint' for every single question to help guide the student.
+        6. You MUST map every question to a maximum of 1 or 2 of the following 14 categories ONLY: Access Management (IAM), Networking, Compute, Storage, Databases, Security/Encryption, Operations/Logging, Compliance/Legal, Kubernetes (GKE), Architecture, Serverless, Data Protection, Incident Response, or General.
         
         SCHEMA STUCTURE PER QUESTION:
         {
@@ -956,7 +957,7 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
             "B": "Why B is correct..."
           },
           "hint": "A subtle clue...",
-          "tags": ["Applicable Category Name"]
+          "tags": ["Networking", "Security/Encryption"]
         }`;
 
         for (let i = 0; i < chunks.length; i++) {
