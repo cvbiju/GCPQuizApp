@@ -1017,7 +1017,15 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
                     const aiJsonStr = data.candidates[0].content.parts[0].text;
                     
                     try {
-                        const chunkQuestions = JSON.parse(aiJsonStr);
+                        // Gemini often casually wraps unstructured JSON in markdown blocks when responseSchema is disabled.
+                        // We must aggressively sanitize the string before passing it to the native JSON parser.
+                        let cleanStr = aiJsonStr.trim();
+                        if (cleanStr.startsWith('```json')) cleanStr = cleanStr.substring(7);
+                        if (cleanStr.startsWith('```')) cleanStr = cleanStr.substring(3);
+                        if (cleanStr.endsWith('```')) cleanStr = cleanStr.substring(0, cleanStr.length - 3);
+                        cleanStr = cleanStr.trim();
+
+                        const chunkQuestions = JSON.parse(cleanStr);
                         if (Array.isArray(chunkQuestions)) {
                             if (chunkQuestions.length === 0) {
                                 console.warn(`Chunk ${i+1} returned an empty array.`);
