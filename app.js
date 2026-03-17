@@ -967,90 +967,111 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
         for (let i = 0; i < chunks.length; i++) {
             DOMElements.aiGenerationText.textContent = `Analyzing Chunk ${i + 1} of ${chunks.length} via AI (${Math.round(((i)/chunks.length)*100)}%)`;
             
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${chatApiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                    contents: [{ parts: [{ text: "Extract questions per instructions:\n\n" + chunks[i] }] }],
-                    generationConfig: { 
-                        temperature: 0.1, 
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "ARRAY",
-                            description: "List of multiple choice questions extracted from the text.",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    question: { type: "STRING" },
-                                    options: { 
-                                        type: "OBJECT", 
-                                        properties: {
-                                            A: { type: "STRING" },
-                                            B: { type: "STRING" },
-                                            C: { type: "STRING" },
-                                            D: { type: "STRING" },
-                                            E: { type: "STRING" },
-                                            F: { type: "STRING" }
-                                        }
-                                    },
-                                    answer: { type: "STRING" },
-                                    explanations: {
+            let success = false;
+            let retries = 0;
+
+            while (!success && retries < 3) {
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${chatApiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            systemInstruction: { parts: [{ text: systemPrompt }] },
+                            contents: [{ parts: [{ text: "Extract questions per instructions:\n\n" + chunks[i] }] }],
+                            generationConfig: { 
+                                temperature: 0.1, 
+                                responseMimeType: "application/json",
+                                responseSchema: {
+                                    type: "ARRAY",
+                                    description: "List of multiple choice questions extracted from the text.",
+                                    items: {
                                         type: "OBJECT",
                                         properties: {
-                                            A: { type: "STRING" },
-                                            B: { type: "STRING" },
-                                            C: { type: "STRING" },
-                                            D: { type: "STRING" },
-                                            E: { type: "STRING" },
-                                            F: { type: "STRING" }
-                                        }
-                                    },
-                                    hint: { type: "STRING" },
-                                    tags: { 
-                                        type: "ARRAY", 
-                                        items: { 
-                                            type: "STRING", 
-                                            enum: [
-                                                "Access Management (IAM)", "Networking", "Compute", 
-                                                "Storage", "Databases", "Security/Encryption", 
-                                                "Operations/Logging", "Compliance/Legal", "Kubernetes (GKE)", 
-                                                "Architecture", "Serverless", "Data Protection", 
-                                                "Incident Response", "General"
-                                            ]
-                                        }
+                                            question: { type: "STRING" },
+                                            options: { 
+                                                type: "OBJECT", 
+                                                properties: {
+                                                    A: { type: "STRING" },
+                                                    B: { type: "STRING" },
+                                                    C: { type: "STRING" },
+                                                    D: { type: "STRING" },
+                                                    E: { type: "STRING" },
+                                                    F: { type: "STRING" }
+                                                }
+                                            },
+                                            answer: { type: "STRING" },
+                                            explanations: {
+                                                type: "OBJECT",
+                                                properties: {
+                                                    A: { type: "STRING" },
+                                                    B: { type: "STRING" },
+                                                    C: { type: "STRING" },
+                                                    D: { type: "STRING" },
+                                                    E: { type: "STRING" },
+                                                    F: { type: "STRING" }
+                                                }
+                                            },
+                                            hint: { type: "STRING" },
+                                            tags: { 
+                                                type: "ARRAY", 
+                                                items: { 
+                                                    type: "STRING", 
+                                                    enum: [
+                                                        "Access Management (IAM)", "Networking", "Compute", 
+                                                        "Storage", "Databases", "Security/Encryption", 
+                                                        "Operations/Logging", "Compliance/Legal", "Kubernetes (GKE)", 
+                                                        "Architecture", "Serverless", "Data Protection", 
+                                                        "Incident Response", "General"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        required: ["question", "options", "answer", "hint", "tags"]
                                     }
-                                },
-                                required: ["question", "options", "answer", "hint", "tags"]
+                                }
                             }
+                        })
+                    });
+
+                    if (response.status === 429) {
+                        retries++;
+                        DOMElements.aiGenerationText.textContent = `Rate Limit Hit (429). Pausing 60s for Chunk ${i + 1}...`;
+                        await new Promise(r => setTimeout(r, 62000)); // Sleep for 62 seconds to clear API tier
+                        DOMElements.aiGenerationText.textContent = `Analyzing Chunk ${i + 1} of ${chunks.length} via AI (${Math.round(((i)/chunks.length)*100)}%)`;
+                        continue;
+                    }
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Gemini API Error: ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    const aiJsonStr = data.candidates[0].content.parts[0].text;
+                    
+                    try {
+                        const chunkQuestions = JSON.parse(aiJsonStr);
+                        if (Array.isArray(chunkQuestions)) {
+                            if (chunkQuestions.length === 0) {
+                                console.warn(`Chunk ${i+1} returned an empty array.`);
+                            }
+                            allQuestions = allQuestions.concat(chunkQuestions);
+                            success = true;
+                        } else {
+                            throw new Error("Parsed JSON was not an array");
                         }
+                    } catch(e) {
+                        console.error(`Failed to parse chunk ${i+1} JSON`);
+                        throw new Error(`Chunk ${i+1} JSON Parse Error: ${e.message}\nRaw Text: ${aiJsonStr.substring(0, 150)}...`);
                     }
-                })
-            });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Gemini API Error: ${errorText}`);
-            }
-
-            const data = await response.json();
-            const aiJsonStr = data.candidates[0].content.parts[0].text;
-            
-            try {
-                const chunkQuestions = JSON.parse(aiJsonStr);
-                if (Array.isArray(chunkQuestions)) {
-                    if (chunkQuestions.length === 0) {
-                        console.warn(`Chunk ${i+1} returned an empty array.`);
-                    }
-                    allQuestions = allQuestions.concat(chunkQuestions);
-                } else {
-                    throw new Error("Parsed JSON was not an array");
+                } catch (err) {
+                    if (retries >= 2) throw err;
+                    retries++;
+                    await new Promise(r => setTimeout(r, 5000)); // generic 5s retry backoff
                 }
-            } catch(e) {
-                console.error(`Failed to parse chunk ${i+1} JSON`);
-                throw new Error(`Chunk ${i+1} JSON Parse Error: ${e.message}\nRaw Text: ${aiJsonStr.substring(0, 150)}...`);
-            }
-        }
+            } // End of retry while loop
+        } // End of chunks loop
         
         if (allQuestions.length === 0) {
             throw new Error("AI failed to find valid questions in the text.");
