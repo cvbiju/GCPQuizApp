@@ -926,8 +926,8 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
         }
 
         // Chunking with overlap to prevent cutting questions in half
-        const chunkSize = 40000; // characters
-        const overlapSize = 1000; // 1000 character overlap
+        const chunkSize = 15000; // characters
+        const overlapSize = 1500; // 1500 character overlap
         const chunks = [];
         
         for (let i = 0; i < customPdfText.length; i += (chunkSize - overlapSize)) {
@@ -973,7 +973,58 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
                 body: JSON.stringify({
                     systemInstruction: { parts: [{ text: systemPrompt }] },
                     contents: [{ parts: [{ text: "Extract questions per instructions:\n\n" + chunks[i] }] }],
-                    generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
+                    generationConfig: { 
+                        temperature: 0.1, 
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            description: "List of multiple choice questions extracted from the text.",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    question: { type: "STRING" },
+                                    options: { 
+                                        type: "OBJECT", 
+                                        properties: {
+                                            A: { type: "STRING" },
+                                            B: { type: "STRING" },
+                                            C: { type: "STRING" },
+                                            D: { type: "STRING" },
+                                            E: { type: "STRING" },
+                                            F: { type: "STRING" }
+                                        }
+                                    },
+                                    answer: { type: "STRING" },
+                                    explanations: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            A: { type: "STRING" },
+                                            B: { type: "STRING" },
+                                            C: { type: "STRING" },
+                                            D: { type: "STRING" },
+                                            E: { type: "STRING" },
+                                            F: { type: "STRING" }
+                                        }
+                                    },
+                                    hint: { type: "STRING" },
+                                    tags: { 
+                                        type: "ARRAY", 
+                                        items: { 
+                                            type: "STRING", 
+                                            enum: [
+                                                "Access Management (IAM)", "Networking", "Compute", 
+                                                "Storage", "Databases", "Security/Encryption", 
+                                                "Operations/Logging", "Compliance/Legal", "Kubernetes (GKE)", 
+                                                "Architecture", "Serverless", "Data Protection", 
+                                                "Incident Response", "General"
+                                            ]
+                                        }
+                                    }
+                                },
+                                required: ["question", "options", "answer", "hint", "tags"]
+                            }
+                        }
+                    }
                 })
             });
 
