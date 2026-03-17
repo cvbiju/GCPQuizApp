@@ -975,9 +975,14 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
 
             while (!success && retries < 3) {
                 try {
+                    // AbortController to prevent infinitely hanging fetches
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 65000); // 65 second timeout
+
                     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${chatApiKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        signal: controller.signal,
                         body: JSON.stringify({
                             systemInstruction: { parts: [{ text: systemPrompt }] },
                             contents: [{ parts: [{ text: "Extract questions per instructions:\n\n" + chunks[i] }] }],
@@ -987,6 +992,8 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
                             }
                         })
                     });
+                    
+                    clearTimeout(timeoutId);
 
                     if (response.status === 429) {
                         retries++;
@@ -1001,6 +1008,12 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
                                 }
                             }
                         } catch(e) {}
+                        
+                        // Prevent the app from sleeping for 24 hours if Daily Quota is exhausted
+                        if (sleepMs > 180000) { // If sleep is > 3 minutes
+                            console.error(`Daily Quota exhausted. API requested ${Math.round(sleepMs/1000)}s sleep.`);
+                            throw new Error("Daily API Quota Exhausted");
+                        }
                         
                         DOMElements.aiGenerationText.textContent = `Rate Limit Hit. Pausing ${Math.round(sleepMs/1000)}s...`;
                         await new Promise(r => setTimeout(r, sleepMs));
@@ -1041,6 +1054,13 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
                     }
 
                 } catch (err) {
+                    if (err.message === "Daily API Quota Exhausted") {
+                        retries = 99; // force absolute break out
+                        break;
+                    }
+                    if (err.name === 'AbortError') {
+                        console.warn(`Chunk ${i+1} fetch timed out.`);
+                    }
                     if (retries >= 2) throw err;
                     retries++;
                     await new Promise(r => setTimeout(r, 5000)); // generic 5s retry backoff
