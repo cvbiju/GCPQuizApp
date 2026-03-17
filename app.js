@@ -926,8 +926,8 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
         }
 
         // Chunking with overlap to prevent cutting questions in half
-        const chunkSize = 15000; // characters
-        const overlapSize = 1500; // 1500 character overlap
+        const chunkSize = 75000; // characters
+        const overlapSize = 3000; // 3000 character overlap
         const chunks = [];
         
         for (let i = 0; i < customPdfText.length; i += (chunkSize - overlapSize)) {
