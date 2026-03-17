@@ -130,34 +130,6 @@
                             </div>
                         </div>
 
-                        <div id="createStep2" class="hidden" style="margin-bottom: 1.5rem; padding: 1.5rem; border-radius: 8px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--accent-green);">
-                            <h3 style="color: var(--accent-green); margin-bottom: 0.5rem;">✅ Scan Complete</h3>
-                            <p id="scanEstimateText" style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Found ~0 questions across topics.</p>
-                            
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Generation Strategy (Max 50 Questions)</label>
-                            <select id="generationMode" class="text-input" style="width: 100%; margin-bottom: 1rem;">
-                                <option value="random">Random Fast 50</option>
-                                <option value="topic">Filter by Specific Topics</option>
-                                <option value="range">Extract by Exact Range (e.g., Q1-Q50)</option>
-                            </select>
-
-                            <div id="topicSelectionCont" class="hidden" style="margin-bottom: 1rem; background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Select Topics to Extract:</label>
-                                <div id="scannedTopics" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
-                            </div>
-
-                            <div id="rangeSelectionCont" class="hidden" style="margin-bottom: 1rem; display: flex; gap: 1rem;">
-                                <div style="flex: 1;">
-                                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Start Q#</label>
-                                    <input type="number" id="genRangeStart" class="text-input" value="1" min="1" style="width: 100%;">
-                                </div>
-                                <div style="flex: 1;">
-                                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">End Q# (Max 50 diff)</label>
-                                    <input type="number" id="genRangeEnd" class="text-input" value="50" min="1" style="width: 100%;">
-                                </div>
-                            </div>
-                        </div>
-
                         <div id="aiGenerationStatus" class="hidden" style="margin-bottom: 2rem; padding: 1rem; border-radius: 8px; background: rgba(88, 166, 255, 0.1); border: 1px solid var(--accent-blue);">
                             <div style="display: flex; align-items: center; gap: 1rem;">
                                 <div class="blob-spinner" style="width: 24px; height: 24px; border-width: 3px;"></div>
@@ -167,11 +139,8 @@
 
                         <div style="display: flex; gap: 1rem;">
                             <button id="cancelCreateBtn" class="secondary-btn" style="flex: 1;">Cancel</button>
-                            <button id="quickScanBtn" class="primary-btn" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" disabled>
-                                <span>📄</span> Quick Scan Document
-                            </button>
-                            <button id="generateExamBtn" class="primary-btn hidden" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--accent-green); border-color: var(--accent-green);">
-                                <span>⚡</span> Build Targeted Exam
+                            <button id="extractMasterBtn" class="primary-btn" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" disabled>
+                                <span>⚡</span> Extract Master Bank
                             </button>
                         </div>
                     </div>
@@ -209,14 +178,23 @@
                         </div>
                     </div>
 
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.9rem;">Filter by Topic(s)</label>
+                        <div id="setupTopicFilters" style="display: flex; flex-wrap: wrap; gap: 0.5rem; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 1rem; border-radius: 8px;">
+                            <!-- Checkboxes populated by JS -->
+                        </div>
+                    </div>
+
                     <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
                         <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">Start Question</label>
-                            <input type="number" id="rangeStart" value="1" min="1" class="text-input" style="width: 100%;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">Number of Questions</label>
+                            <input type="number" id="setupQuestionCount" value="50" min="1" class="text-input" style="width: 100%;">
                         </div>
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">End Question</label>
-                            <input type="number" id="rangeEnd" value="10" min="1" class="text-input" style="width: 100%;">
+                        <div style="flex: 1; display: flex; align-items: flex-end;">
+                            <label style="display:flex; align-items:center; gap: 0.5rem; cursor:pointer; height: 42px; width: 100%; justify-content: center; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid var(--glass-border);">
+                                <input type="checkbox" id="setupRandomizeGrid" checked>
+                                <span style="font-size: 0.9rem;">🔀 Randomize Pool</span>
+                            </label>
                         </div>
                     </div>
                     
