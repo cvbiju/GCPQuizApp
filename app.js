@@ -925,11 +925,15 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
             throw new Error("Could not extract enough text. The PDF might be scanned images instead of text.");
         }
 
-        // Chunking
+        // Chunking with overlap to prevent cutting questions in half
         const chunkSize = 40000; // characters
+        const overlapSize = 1000; // 1000 character overlap
         const chunks = [];
-        for (let i = 0; i < customPdfText.length; i += chunkSize) {
+        
+        for (let i = 0; i < customPdfText.length; i += (chunkSize - overlapSize)) {
             chunks.push(customPdfText.substring(i, i + chunkSize));
+            // Break early to prevent an infinite tiny trailing chunk
+            if (i + chunkSize >= customPdfText.length) break;
         }
 
         let allQuestions = [];
@@ -994,6 +998,18 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
         if (allQuestions.length === 0) {
             throw new Error("AI failed to find valid questions in the text.");
         }
+
+        // Deduplicate questions (to handle 1000-character overlap)
+        const uniqueQuestionsMap = new Map();
+        allQuestions.forEach(q => {
+            if (q.question) {
+                const normalizedQ = q.question.trim().toLowerCase().replace(/\s+/g, ' ');
+                if (!uniqueQuestionsMap.has(normalizedQ)) {
+                    uniqueQuestionsMap.set(normalizedQ, q);
+                }
+            }
+        });
+        allQuestions = Array.from(uniqueQuestionsMap.values());
 
         const tagCounts = {};
         allQuestions.forEach((q, idx) => {
