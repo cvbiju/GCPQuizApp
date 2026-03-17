@@ -40,6 +40,7 @@ const DOMElements = {
     cancelCreateBtn: document.getElementById('cancelCreateBtn'),
     aiGenerationStatus: document.getElementById('aiGenerationStatus'),
     aiGenerationText: document.getElementById('aiGenerationText'),
+    aiGenerationProgress: document.getElementById('aiGenerationProgress'),
     setupView: document.getElementById('setup-view'),
     activeExamTitle: document.getElementById('activeExamTitle'),
     setupTotalCount: document.getElementById('setupTotalCount'),
@@ -926,8 +927,8 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
         }
 
         // Chunking with overlap to prevent cutting questions in half
-        const chunkSize = 75000; // characters
-        const overlapSize = 3000; // 3000 character overlap
+        const chunkSize = 28000; // characters
+        const overlapSize = 2500; // 2500 character overlap
         const chunks = [];
         
         for (let i = 0; i < customPdfText.length; i += (chunkSize - overlapSize)) {
@@ -965,7 +966,9 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
         }`;
 
         for (let i = 0; i < chunks.length; i++) {
-            DOMElements.aiGenerationText.textContent = `Analyzing Chunk ${i + 1} of ${chunks.length} via AI (${Math.round(((i)/chunks.length)*100)}%)`;
+            const perc = Math.round((i / chunks.length) * 100);
+            DOMElements.aiGenerationProgress.style.width = `${perc}%`;
+            DOMElements.aiGenerationText.textContent = `Analyzing Chunk ${i + 1} of ${chunks.length} via AI (${perc}%)`;
             
             let success = false;
             let retries = 0;
@@ -1037,7 +1040,7 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
                         retries++;
                         DOMElements.aiGenerationText.textContent = `Rate Limit Hit (429). Pausing 60s for Chunk ${i + 1}...`;
                         await new Promise(r => setTimeout(r, 62000)); // Sleep for 62 seconds to clear API tier
-                        DOMElements.aiGenerationText.textContent = `Analyzing Chunk ${i + 1} of ${chunks.length} via AI (${Math.round(((i)/chunks.length)*100)}%)`;
+                        DOMElements.aiGenerationText.textContent = `Analyzing Chunk ${i + 1} of ${chunks.length} via AI (${perc}%)`;
                         continue;
                     }
 
@@ -1072,6 +1075,9 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
                 }
             } // End of retry while loop
         } // End of chunks loop
+        
+        DOMElements.aiGenerationProgress.style.width = `100%`;
+        DOMElements.aiGenerationText.textContent = 'Finalizing Master JSON...';
         
         if (allQuestions.length === 0) {
             throw new Error("AI failed to find valid questions in the text.");
@@ -1117,6 +1123,7 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
         alert(successMsg);
         
         // Reset and return
+        DOMElements.aiGenerationProgress.style.width = `0%`;
         DOMElements.cancelCreateBtn.disabled = false;
         DOMElements.extractMasterBtn.disabled = false;
         DOMElements.extractMasterBtn.innerHTML = '<span>⚡</span> Extract Master Bank';
@@ -1127,6 +1134,7 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
     } catch (err) {
         console.error(err);
         alert(`Extraction Failed: ${err.message}`);
+        DOMElements.aiGenerationProgress.style.width = `0%`;
         DOMElements.cancelCreateBtn.disabled = false;
         DOMElements.extractMasterBtn.disabled = false;
         DOMElements.extractMasterBtn.innerHTML = '<span>⚡</span> Extract Master Bank';
