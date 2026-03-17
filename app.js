@@ -854,7 +854,7 @@ DOMElements.createExamFile.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) {
         DOMElements.uploadFileName.textContent = '';
-        DOMElements.quickScanBtn.disabled = true;
+        DOMElements.extractMasterBtn.disabled = true;
         customPdfText = '';
         return;
     }
@@ -866,7 +866,7 @@ DOMElements.createExamFile.addEventListener('change', async (e) => {
     }
 
     DOMElements.uploadFileName.textContent = `Attached: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-    DOMElements.quickScanBtn.disabled = false;
+    DOMElements.extractMasterBtn.disabled = false;
 });
 
 async function extractTextFromPDF(pdfDataUrl) {
