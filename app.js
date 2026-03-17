@@ -983,55 +983,7 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
                             contents: [{ parts: [{ text: "Extract questions per instructions:\n\n" + chunks[i] }] }],
                             generationConfig: { 
                                 temperature: 0.1, 
-                                responseMimeType: "application/json",
-                                responseSchema: {
-                                    type: "ARRAY",
-                                    description: "List of multiple choice questions extracted from the text.",
-                                    items: {
-                                        type: "OBJECT",
-                                        properties: {
-                                            question: { type: "STRING" },
-                                            options: { 
-                                                type: "OBJECT", 
-                                                properties: {
-                                                    A: { type: "STRING" },
-                                                    B: { type: "STRING" },
-                                                    C: { type: "STRING" },
-                                                    D: { type: "STRING" },
-                                                    E: { type: "STRING" },
-                                                    F: { type: "STRING" }
-                                                }
-                                            },
-                                            answer: { type: "STRING" },
-                                            explanations: {
-                                                type: "OBJECT",
-                                                properties: {
-                                                    A: { type: "STRING" },
-                                                    B: { type: "STRING" },
-                                                    C: { type: "STRING" },
-                                                    D: { type: "STRING" },
-                                                    E: { type: "STRING" },
-                                                    F: { type: "STRING" }
-                                                }
-                                            },
-                                            hint: { type: "STRING" },
-                                            tags: { 
-                                                type: "ARRAY", 
-                                                items: { 
-                                                    type: "STRING", 
-                                                    enum: [
-                                                        "Access Management (IAM)", "Networking", "Compute", 
-                                                        "Storage", "Databases", "Security/Encryption", 
-                                                        "Operations/Logging", "Compliance/Legal", "Kubernetes (GKE)", 
-                                                        "Architecture", "Serverless", "Data Protection", 
-                                                        "Incident Response", "General"
-                                                    ]
-                                                }
-                                            }
-                                        },
-                                        required: ["question", "options", "answer", "hint", "tags"]
-                                    }
-                                }
+                                responseMimeType: "application/json"
                             }
                         })
                     });
@@ -1113,9 +1065,23 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
         });
         allQuestions = Array.from(uniqueQuestionsMap.values());
 
+        const allowedTags = [
+            "Access Management (IAM)", "Networking", "Compute", 
+            "Storage", "Databases", "Security/Encryption", 
+            "Operations/Logging", "Compliance/Legal", "Kubernetes (GKE)", 
+            "Architecture", "Serverless", "Data Protection", 
+            "Incident Response"
+        ];
+
         const tagCounts = {};
         allQuestions.forEach((q, idx) => {
             q.originalIndex = idx + 1;
+            
+            // Enforce White-list logic
+            if (q.tags && Array.isArray(q.tags)) {
+                q.tags = q.tags.filter(tag => allowedTags.includes(tag));
+            }
+
             if (!q.tags || !Array.isArray(q.tags) || q.tags.length === 0) {
                 q.tags = ["General"];
             }
