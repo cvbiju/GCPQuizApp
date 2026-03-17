@@ -1029,8 +1029,8 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
             });
 
             if (!response.ok) {
-                console.warn(`Chunk ${i+1} failed API response`);
-                continue;
+                const errorText = await response.text();
+                throw new Error(`Gemini API Error: ${errorText}`);
             }
 
             const data = await response.json();
@@ -1039,10 +1039,16 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
             try {
                 const chunkQuestions = JSON.parse(aiJsonStr);
                 if (Array.isArray(chunkQuestions)) {
+                    if (chunkQuestions.length === 0) {
+                        console.warn(`Chunk ${i+1} returned an empty array.`);
+                    }
                     allQuestions = allQuestions.concat(chunkQuestions);
+                } else {
+                    throw new Error("Parsed JSON was not an array");
                 }
             } catch(e) {
-                console.warn(`Failed to parse chunk ${i+1} JSON`);
+                console.error(`Failed to parse chunk ${i+1} JSON`);
+                throw new Error(`Chunk ${i+1} JSON Parse Error: ${e.message}\nRaw Text: ${aiJsonStr.substring(0, 150)}...`);
             }
         }
         
