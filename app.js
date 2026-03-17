@@ -1038,8 +1038,20 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
 
                     if (response.status === 429) {
                         retries++;
-                        DOMElements.aiGenerationText.textContent = `Rate Limit Hit (429). Pausing 60s for Chunk ${i + 1}...`;
-                        await new Promise(r => setTimeout(r, 62000)); // Sleep for 62 seconds to clear API tier
+                        let sleepMs = 62000;
+                        try {
+                            const cloneRes = response.clone();
+                            const errorData = await cloneRes.json();
+                            if (errorData.error && errorData.error.message) {
+                                const match = errorData.error.message.match(/retry in ([\d\.]+)s/);
+                                if (match && match[1]) {
+                                    sleepMs = Math.ceil(parseFloat(match[1])) * 1000 + 2000;
+                                }
+                            }
+                        } catch(e) {}
+                        
+                        DOMElements.aiGenerationText.textContent = `Rate Limit Hit. Pausing ${Math.round(sleepMs/1000)}s...`;
+                        await new Promise(r => setTimeout(r, sleepMs));
                         DOMElements.aiGenerationText.textContent = `Analyzing Chunk ${i + 1} of ${chunks.length} via AI (${perc}%)`;
                         continue;
                     }
@@ -1074,6 +1086,12 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
                     await new Promise(r => setTimeout(r, 5000)); // generic 5s retry backoff
                 }
             } // End of retry while loop
+            
+            if (!success) {
+                console.warn(`Chunk ${i+1} failed after maximum retries. Halting early.`);
+                DOMElements.aiGenerationText.textContent = `API Limits reached. Consolidating partial extraction...`;
+                break; // Stop further chunks, save partial progress
+            }
         } // End of chunks loop
         
         DOMElements.aiGenerationProgress.style.width = `100%`;
@@ -1104,9 +1122,13 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
             q.tags.forEach(tag => tagCounts[tag] = (tagCounts[tag] || 0) + 1);
         });
 
+        // Format title depending on if it stalled out early
+        const isPartial = DOMElements.aiGenerationText.textContent.includes('API Limits reached');
+        const finalTitle = title + ` (${allQuestions.length} Qs${isPartial ? ' - Partial' : ''})`;
+
         const customExamObj = {
             id: 'exam_' + Date.now(),
-            title: title + ` (${allQuestions.length} Qs)`,
+            title: finalTitle,
             questions: allQuestions
         };
 
@@ -1115,7 +1137,11 @@ DOMElements.extractMasterBtn.addEventListener('click', async () => {
         localStorage.setItem('quiz_custom_exams', JSON.stringify(existingCustoms));
 
         // Format summary alert
-        let successMsg = `Success! Extracted ${allQuestions.length} master questions.\n\nTopic Breakdown:\n`;
+        let successMsg = `Successfully extracted ${allQuestions.length} master questions.\n\nTopic Breakdown:\n`;
+        if (isPartial) {
+            successMsg = `Extraction halted early due to Google API Rate Limits.\n\nWe safely salvaged ${allQuestions.length} questions before the cutoff.\n\nTopic Breakdown:\n`;
+        }
+        
         Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).forEach(([tag, count]) => {
             successMsg += `- ${tag}: ${count}\n`;
         });
