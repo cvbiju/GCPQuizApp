@@ -9,9 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <!-- AI Parser required lib -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <!-- JS Libraries -->
 </head>
 <body>
     <div class="overlay-grad"></div>
@@ -74,87 +72,12 @@
                     <h3>Waking up the platform...</h3>
                 </div>
 
-                <!-- NEW PHASE 5: LIBRARY VIEW -->
-                <div id="library-view" class="state-view hidden">
-                    <div class="glass-panel" style="max-width: 800px; margin: 0 auto; text-align: left;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                            <div>
-                                <h2 style="font-size: 1.8rem; background: -webkit-linear-gradient(#fff, #aaa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">📚 Exam Library</h2>
-                            </div>
-                            <div style="display: flex; gap: 0.75rem;">
-                                <button id="resetAppDataBtn" class="secondary-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; color: var(--accent-red); border-color: var(--accent-red); background: rgba(248, 81, 73, 0.1);">🗑️ Reset App Data</button>
-                                <button id="navCreateBtn" class="primary-btn" style="padding: 0.5rem 1.25rem; font-size: 0.9rem;">+ Build Custom Exam</button>
-                            </div>
-                        </div>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 2rem;">Upload a PDF study guide using the Green button to run it through the local AI Generator. All generated exams and your progress history are saved locally in your browser so you can return your studies anytime.</p>
 
-                        <div id="examGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
-                            <!-- Cards populated by JS -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- NEW PHASE 5: CREATE EXAM VIEW -->
-                <div id="create-view" class="state-view hidden">
-                    <div class="glass-panel" style="max-width: 600px; margin: 0 auto; text-align: left;">
-                        <h2 style="margin-bottom: 1rem; color: var(--accent-blue);">Build Custom Exam (AI)</h2>
-                        <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5;">Upload a study guide PDF. Gemini AI will automatically read the text, identify multiple choice questions, generate explanations for every option, and build a fully playable interactive exam.</p>
-
-                        <div id="createStep1">
-                            <div style="margin-bottom: 1.5rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Exam Name <span style="color:var(--accent-red)">*</span></label>
-                                <input type="text" id="createExamName" class="text-input" placeholder="e.g., AWS Solutions Architect P1" style="width: 100%;">
-                            </div>
-
-                            <div style="margin-bottom: 2rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Source Document (PDF) <span style="color:var(--accent-red)">*</span></label>
-                                <div style="border: 2px dashed var(--glass-border); border-radius: 8px; padding: 2rem; text-align: center; background: rgba(0,0,0,0.2);">
-                                    <input type="file" id="createExamFile" accept=".pdf" style="display: none;">
-                                    <button id="triggerUploadBtn" class="secondary-btn">Select PDF File</button>
-                                    <p id="uploadFileName" style="margin-top: 1rem; color: var(--accent-blue); font-size: 0.9rem;"></p>
-                                </div>
-                            </div>
-
-                            <div id="createKeyContainer" style="margin-bottom: 1.5rem; padding: 1rem; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                                    <label style="font-weight: bold; font-size: 0.9rem;">Gemini AI Connection <span style="color:var(--accent-red)">*</span></label>
-                                    <button id="editCreateKeyBtn" class="hidden" style="background: none; border: none; color: var(--accent-blue); cursor: pointer; font-size: 0.85rem; padding: 0;">Edit Key</button>
-                                </div>
-                                <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1rem;">Requires a <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">free API Key</a> to power the AI extraction engine. Your key does not expire.</p>
-                                
-                                <div id="createKeyInputArea">
-                                    <input type="password" id="createApiKeyInput" class="text-input" placeholder="Paste your Google Gemini API Key..." style="width: 100%; margin-bottom: 0.5rem;" autocomplete="off">
-                                    <button id="saveCreateKeyBtn" class="secondary-btn" style="width: 100%; font-size: 0.85rem; padding: 0.4rem;">Save & Connect API</button>
-                                </div>
-                                <p id="createKeySuccess" class="hidden" style="color: var(--accent-green); font-size: 0.85rem; margin-top: 0.5rem;">✅ API Key Linked Successfully</p>
-                            </div>
-                        </div>
-
-                        <div id="aiGenerationStatus" class="hidden" style="margin-bottom: 2rem; padding: 1rem; border-radius: 8px; background: rgba(88, 166, 255, 0.1); border: 1px solid var(--accent-blue);">
-                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
-                                <div class="blob-spinner" style="width: 24px; height: 24px; border-width: 3px;"></div>
-                                <span id="aiGenerationText" style="color: white; font-weight: bold;">Reading PDF structure...</span>
-                            </div>
-                            <!-- Progress Bar -->
-                            <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden;">
-                                <div id="aiGenerationProgress" style="width: 0%; height: 100%; background: var(--accent-blue); transition: width 0.3s ease;"></div>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; gap: 1rem;">
-                            <button id="cancelCreateBtn" class="secondary-btn" style="flex: 1;">Cancel</button>
-                            <button id="extractMasterBtn" class="primary-btn" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" disabled>
-                                <span>⚡</span> Extract Master Bank
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Application Setup View -->
                 <div id="setup-view" class="state-view glass-panel hidden">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <h2 id="activeExamTitle" style="font-size: 1.5rem; color: var(--text-primary);">Configuring Exam</h2>
-                        <button id="backToLibraryBtn" class="secondary-btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">🔙 Library</button>
                     </div>
                     
                     <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; text-align: center;">
@@ -175,14 +98,14 @@
                         </button>
                     </div>
 
-                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 8px; padding: 1rem; margin-bottom: 2rem;">
+                    <div class="hidden" style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 8px; padding: 1rem; margin-bottom: 2rem;">
                         <h4 style="margin-bottom: 1rem; color: var(--accent-blue); font-size: 0.95rem;">Filter by Topic</h4>
                         <div id="tagFilters" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
                             <!-- Tag checkboxes populated by JS -->
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 1.5rem;">
+                    <div class="hidden" style="margin-bottom: 1.5rem;">
                         <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.9rem;">Filter by Topic(s)</label>
                         <div id="setupTopicFilters" style="display: flex; flex-wrap: wrap; gap: 0.5rem; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 1rem; border-radius: 8px;">
                             <!-- Checkboxes populated by JS -->
@@ -191,12 +114,12 @@
 
                     <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
                         <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">Number of Questions</label>
-                            <input type="number" id="setupQuestionCount" value="50" min="1" class="text-input" style="width: 100%;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">Question Range</label>
+                            <input type="text" id="setupQuestionRange" placeholder="e.g. 1-10 or 45-95" class="text-input" style="width: 100%;">
                         </div>
                         <div style="flex: 1; display: flex; align-items: flex-end;">
                             <label style="display:flex; align-items:center; gap: 0.5rem; cursor:pointer; height: 42px; width: 100%; justify-content: center; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid var(--glass-border);">
-                                <input type="checkbox" id="setupRandomizeGrid" checked>
+                                <input type="checkbox" id="setupRandomizeGrid">
                                 <span style="font-size: 0.9rem;">🔀 Randomize Pool</span>
                             </label>
                         </div>
