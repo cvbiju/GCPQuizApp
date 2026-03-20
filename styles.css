@@ -610,6 +610,199 @@ main {
     font-size: 0.85rem;
 }
 
+/* Coverage Widget */
+.coverage-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.coverage-stats-wrap {
+    display: flex;
+    flex: 1;
+    justify-content: space-around;
+    gap: 1rem;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.stat-lbl {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-val {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.circle-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.circular-progress {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent-blue) 0%, rgba(255,255,255,0.05) 0%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 0 15px rgba(88, 166, 255, 0.1);
+}
+
+.inner-circle {
+    position: absolute;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background-color: var(--bg-color); /* matches main background conceptually */
+    /* If the glass panel is lighter, we might need a blend, but bg-color is fine for now as it punches through to the dark theme */
+}
+
+.cov-percentage {
+    position: relative;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.circle-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 600px) {
+    .coverage-card {
+        flex-direction: column-reverse;
+        padding: 1.5rem;
+    }
+    .coverage-stats-wrap {
+        width: 100%;
+    }
+}
+
+/* Question Grid */
+.question-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 1rem;
+}
+
+.q-cell {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    cursor: default;
+    position: relative;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.q-cell:hover {
+    transform: scale(1.1);
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.q-cell.unseen {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+}
+
+.q-cell.attempted {
+    background: rgba(210, 153, 34, 0.2);
+    border-color: rgba(210, 153, 34, 0.5);
+    color: #e3b341;
+}
+
+.q-cell.mastered {
+    background: rgba(46, 160, 67, 0.2);
+    border-color: rgba(46, 160, 67, 0.5);
+    color: #56d364;
+}
+
+/* Tooltip */
+.q-cell .tooltip {
+    visibility: hidden;
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(13, 17, 23, 0.95);
+    border: 1px solid var(--glass-border);
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s, visibility 0.2s;
+    pointer-events: none;
+    z-index: 10;
+    font-weight: 400;
+    color: var(--text-primary);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.q-cell:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.grid-legend {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-secondary);
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.legend-dot.unseen { background: rgba(255, 255, 255, 0.1); }
+.legend-dot.attempted { background: #d29922; }
+.legend-dot.mastered { background: #3fb950; }
+
 /* Exam Toggle Switch */
 .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
 .switch input { opacity: 0; width: 0; height: 0; }

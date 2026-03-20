@@ -412,6 +412,74 @@ function showHistoryView() {
     DOMElements.quiz.classList.add('hidden'); // fail safe
     DOMElements.historyView.classList.remove('hidden');
     
+    // --- Calculate Coverage Stats ---
+    const totalQuestions = originalQuestions.length;
+    let attemptedCount = 0;
+    let masteredCount = 0;
+    
+    const covTotalTxt = document.getElementById('covTotalTxt');
+    const covAttemptedTxt = document.getElementById('covAttemptedTxt');
+    const covMasteredTxt = document.getElementById('covMasteredTxt');
+    const covPercentTxt = document.getElementById('covPercentTxt');
+    const covProgressCircle = document.getElementById('covProgressCircle');
+    
+    if (totalQuestions > 0 && covTotalTxt) {
+        let gridHtml = '';
+        
+        originalQuestions.forEach((q, index) => {
+            const h = hashQuestion(q.question);
+            const qHist = getQuestionHistory(h);
+            const qNum = index + 1;
+            
+            let statusClass = 'unseen';
+            let tooltipHtml = `Q${qNum} - Unseen`;
+            
+            if (qHist) {
+                attemptedCount++;
+                if (isQuestionMastered(qHist)) {
+                    masteredCount++;
+                    statusClass = 'mastered';
+                } else {
+                    statusClass = 'attempted';
+                }
+                tooltipHtml = `Q${qNum}<br><span style="color:#56d364">✓ ${qHist.correct}</span> | <span style="color:#ff7b72">✗ ${qHist.incorrect}</span>`;
+            }
+            
+            gridHtml += `<div class="q-cell ${statusClass}">${qNum}<div class="tooltip">${tooltipHtml}</div></div>`;
+        });
+        
+        const qGrid = document.getElementById('questionGrid');
+        if (qGrid) qGrid.innerHTML = gridHtml;
+        
+        covTotalTxt.textContent = totalQuestions;
+        covAttemptedTxt.textContent = attemptedCount;
+        covMasteredTxt.textContent = masteredCount;
+        
+        const percent = Math.round((attemptedCount / totalQuestions) * 100);
+        
+        // Simple animation
+        let currentPercent = 0;
+        const targetPercent = percent;
+        
+        if (targetPercent > 0) {
+            let step = 0;
+            const animateProgress = setInterval(() => {
+                step += 2;
+                currentPercent = Math.min(step, targetPercent);
+                covPercentTxt.textContent = `${currentPercent}%`;
+                covProgressCircle.style.background = `conic-gradient(var(--accent-blue) ${currentPercent * 3.6}deg, rgba(255,255,255,0.05) ${currentPercent * 3.6}deg)`;
+                
+                if (currentPercent >= targetPercent) {
+                    clearInterval(animateProgress);
+                }
+            }, 20);
+        } else {
+            covPercentTxt.textContent = `0%`;
+            covProgressCircle.style.background = `conic-gradient(var(--accent-blue) 0deg, rgba(255,255,255,0.05) 0deg)`;
+        }
+    }
+    
+    // --- Render History List ---
     const history = JSON.parse(localStorage.getItem('quiz_progress_history') || '[]');
     DOMElements.historyList.innerHTML = '';
     
@@ -459,13 +527,27 @@ function getQuestionHistory(hash) {
     return analytics[hash];
 }
 
+function isQuestionMastered(qHist) {
+    if (!qHist) return false;
+    // Check if we have the history array and enough attempts
+    if (qHist.historyArr && qHist.historyArr.length >= 3) {
+        const last3 = qHist.historyArr.slice(-3);
+        return last3.every(val => val === true);
+    }
+    // Fallback for legacy data without historyArr
+    return qHist.incorrect === 0 && qHist.correct >= 3;
+}
+
 function saveQuestionHistory(hash, isCorrect) {
     const analytics = JSON.parse(localStorage.getItem('quiz_global_analytics') || '{}');
     if (!analytics[hash]) {
-        analytics[hash] = { seen: true, correct: 0, incorrect: 0 };
+        analytics[hash] = { seen: true, correct: 0, incorrect: 0, historyArr: [] };
     }
     if (isCorrect) analytics[hash].correct += 1;
     else analytics[hash].incorrect += 1;
+    
+    if (!analytics[hash].historyArr) analytics[hash].historyArr = [];
+    analytics[hash].historyArr.push(isCorrect);
     
     localStorage.setItem('quiz_global_analytics', JSON.stringify(analytics));
 }
@@ -499,7 +581,7 @@ function loadQuestion(index) {
         DOMElements.questionStatusBadge.style.borderColor = '#3fb950';
     } else {
         const totalAttempts = qHistory.correct + qHistory.incorrect;
-        if (qHistory.incorrect > 0 || qHistory.correct < 3) {
+        if (!isQuestionMastered(qHistory)) {
             DOMElements.questionStatusBadge.textContent = `👀 Seen Before (${qHistory.correct}/${totalAttempts} Correct)`;
             DOMElements.questionStatusBadge.style.backgroundColor = 'rgba(210, 153, 34, 0.2)';
             DOMElements.questionStatusBadge.style.color = '#d29922';
